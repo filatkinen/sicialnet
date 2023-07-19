@@ -1,0 +1,88 @@
+{
+	"info": {
+		"_postman_id": "96b3c4af-d0a0-4878-aa44-7575a5824192",
+		"name": "filatkinen-socialnet",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "27030689"
+	},
+	"item": [
+		{
+			"name": "user/register",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"first_name\": \"Ivan1\",\n    \"second_name\": \"Frolov\",\n    \"birthdate\": \"2002-02-11\",\n    \"biography\": \"Hokkey\",\n    \"city\": \"Moskva\",\n    \"password\": \"passI\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8800/user/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8800",
+					"path": [
+						"user",
+						"register"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "login",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"id\": \"56d721b0-a5cc-a00e-a77d-72b0919cb457\",\n    \"password\": \"passI\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8800/login",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8800",
+					"path": [
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "user/get",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8800/user/get/56d721b0-a5cc-a00e-a77d-72b0919cb457",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8800",
+					"path": [
+						"user",
+						"get",
+						"56d721b0-a5cc-a00e-a77d-72b0919cb457"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
