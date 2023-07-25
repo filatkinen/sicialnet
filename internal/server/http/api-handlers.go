@@ -4,14 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/filatkinen/socialnet/internal/common"
 	socialapp "github.com/filatkinen/socialnet/internal/server/app"
 	"github.com/filatkinen/socialnet/internal/storage"
 	"github.com/gorilla/mux"
 	"net/http"
 	"time"
 )
-
-const DateLayout = "2006-01-02"
 
 func (s *Server) LoginPost(w http.ResponseWriter, r *http.Request) {
 	rID := r.Context().Value(RequestID).(string)
@@ -55,7 +54,7 @@ func (s *Server) UserRegisterPost(w http.ResponseWriter, r *http.Request) {
 
 	var user storage.User
 	if userReg.Birthdate != nil {
-		t, err := time.Parse(DateLayout, *userReg.Birthdate)
+		t, err := time.Parse(common.DateLayout, *userReg.Birthdate)
 		if err != nil {
 			s.ClientError(w, http.StatusBadRequest, "Wrong date format. Use:YYYY-MM-DD")
 			return
@@ -126,15 +125,50 @@ func (s *Server) UserGetIdGet(w http.ResponseWriter, r *http.Request) {
 	if u.BirthDate != nil {
 		age := s.app.GetAge(r.Context(), *u.BirthDate)
 		userGet.Age = &age
-		birthdate := u.BirthDate.Format(DateLayout)
+		birthdate := u.BirthDate.Format(common.DateLayout)
 		userGet.Birthdate = &birthdate
 	}
 	s.writeHTTPJsonOK(w, userGet)
 }
 
 func (s *Server) UserSearchGet(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
+	rID := r.Context().Value(RequestID).(string)
+	first_name := r.URL.Query().Get("first_name")
+	second_name := r.URL.Query().Get("second_name")
+	if len(first_name) == 0 && len(second_name) == 0 {
+		s.ClientError(w, http.StatusBadRequest, "FirstName and SecondName masks are empty")
+		return
+	}
+	usersGet, err := s.app.UserSearch(r.Context(), first_name, second_name)
+	if err != nil {
+		if errors.Is(err, socialapp.ErrorUserNotFound) {
+			s.ClientError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
+			Message:   err.Error(),
+			RequestId: rID,
+			Code:      500,
+		})
+		return
+	}
+
+	var users []*User
+	for i := range usersGet {
+		var user User
+		user.Biography = usersGet[i].Biography
+		user.FirstName = usersGet[i].FirstName
+		user.SecondName = usersGet[i].SecondName
+		if usersGet[i].BirthDate != nil {
+			age := s.app.GetAge(r.Context(), *usersGet[i].BirthDate)
+			user.Age = &age
+			birthdate := usersGet[i].BirthDate.Format(common.DateLayout)
+			user.Birthdate = &birthdate
+		}
+		user.City = usersGet[i].City
+		users = append(users, &user)
+	}
+	s.writeHTTPJsonOK(w, users)
 }
 
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {

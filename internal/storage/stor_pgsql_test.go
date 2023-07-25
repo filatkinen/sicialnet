@@ -1,4 +1,4 @@
-//go:build pgsql
+////go:build pgsql
 
 package storage_test
 

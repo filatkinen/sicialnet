@@ -1,4 +1,4 @@
-//go:build mysql
+////go:build mysql
 
 package storage_test
 

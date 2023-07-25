@@ -8,6 +8,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+const DateLayout = "2006-01-02"
+
 func TokenGenerator() (string, error) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)

@@ -178,6 +178,17 @@ func (a *App) UserGet(ctx context.Context, userID string) (*storage.User, error)
 	return u, nil
 }
 
+func (a *App) UserSearch(ctx context.Context, firstNameMask string, secondNameMask string) ([]*storage.User, error) {
+	usersGet, err := a.storage.UserSearch(ctx, firstNameMask, secondNameMask)
+	if err != nil {
+		if errors.Is(err, storage.ErrRecordNotFound) {
+			return nil, ErrorUserNotFound
+		}
+		return nil, err
+	}
+	return usersGet, nil
+}
+
 func (a *App) GetAge(ctx context.Context, birthDay time.Time) int {
 	y1, _, _ := birthDay.Date()
 	y2, _, _ := time.Now().Date()

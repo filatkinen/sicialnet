@@ -237,6 +237,35 @@ func (s *Storage) UserCredentialGet(ctx context.Context, userID string) (*storag
 	return &r, nil
 }
 
+func (s *Storage) UserSearch(ctx context.Context, firstNameMask string, secondNameMask string) ([]*storage.User, error) {
+	query := `SELECT user_id, first_name, second_name, biography, city, birthdate
+	FROM users
+	WHERE first_name LIKE ?
+  	AND second_name LIKE ?`
+	rows, err := s.db.QueryContext(ctx, query, firstNameMask+"%", secondNameMask+"%")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var result []*storage.User
+	for rows.Next() {
+		var user storage.User
+		err = rows.Scan(
+			&user.Id,
+			&user.FirstName,
+			&user.SecondName,
+			&user.Biography,
+			&user.City,
+			&user.BirthDate,
+		)
+		result = append(result, &user)
+	}
+	if len(result) == 0 {
+		return nil, storage.ErrRecordNotFound
+	}
+	return result, nil
+}
+
 func (s *Storage) Close(_ context.Context) error {
 	return s.db.Close()
 }

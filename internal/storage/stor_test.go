@@ -2,6 +2,7 @@ package storage_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"github.com/filatkinen/socialnet/internal/common"
 	"github.com/filatkinen/socialnet/internal/storage"
@@ -18,11 +19,20 @@ func newTimePointer(s time.Time) *time.Time {
 	return &s
 }
 
+func toJSON(value any) string {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return ""
+	}
+	return string(data)
+}
+
 const delete bool = false
 
 var (
 	UUID1, _ = storage.UUID()
 	UUID2, _ = storage.UUID()
+	UUID3, _ = storage.UUID()
 	users    = []*storage.User{
 		{
 			Id:        UUID1,
@@ -30,10 +40,18 @@ var (
 			Sex:       newStringPointer("male"),
 		},
 		{
-			Id:        UUID2,
-			FirstName: "Mariya1",
-			Sex:       newStringPointer("female"),
-			BirthDate: newTimePointer(time.Now().Add(-time.Hour * 34 * 365 * 20).Truncate(time.Hour * 24).UTC()),
+			Id:         UUID2,
+			FirstName:  "Mariya1",
+			SecondName: newStringPointer("Filimonova1"),
+			Sex:        newStringPointer("female"),
+			BirthDate:  newTimePointer(time.Now().Add(-time.Hour * 34 * 365 * 20).Truncate(time.Hour * 24).UTC()),
+		},
+		{
+			Id:         UUID3,
+			FirstName:  "Mariya2",
+			SecondName: newStringPointer("Filimonova2"),
+			Sex:        newStringPointer("female"),
+			BirthDate:  newTimePointer(time.Now().Add(-time.Hour * 34 * 365 * 18).Truncate(time.Hour * 24).UTC()),
 		},
 	}
 )
@@ -126,6 +144,12 @@ func runTestStorage(t *testing.T, ctx context.Context, store storage.Storage) {
 	require.NoError(t, err)
 	_, err = store.UserCredentialGet(ctx, user.Id)
 	require.Equal(t, storage.ErrRecordNotFound, err)
+
+	//search
+	users, err := store.UserSearch(ctx, "Mar", "Fil")
+	for i := range users {
+		fmt.Println(toJSON(users[i]))
+	}
 
 	if delete {
 		err = store.UserDelete(ctx, user.Id)
