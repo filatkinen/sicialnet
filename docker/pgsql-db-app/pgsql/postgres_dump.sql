@@ -15,6 +15,10 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+CREATE USER socialnet PASSWORD 'socialnet';;
+CREATE DATABASE socialnet;
+GRANT ALL PRIVILEGES ON DATABASE socialnet TO socialnet;
+
 DROP DATABASE IF EXISTS snet;
 --
 -- Name: snet; Type: DATABASE; Schema: -; Owner: postgres

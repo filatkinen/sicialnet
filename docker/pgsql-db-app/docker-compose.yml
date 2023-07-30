@@ -1,0 +1,32 @@
+version: '3'
+services:
+  pgsql:
+    build:
+      context: ./pgsql
+    container_name: socialnet_pgsql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - socialnet
+
+  goapp:
+    build:
+      context: ./app
+    container_name: socialnet_app
+    depends_on:
+       pgsql:
+          condition: service_healthy
+    restart: always
+    tty: true
+    stdin_open: true
+    ports:
+      - "8800:8800"
+    networks:
+      - socialnet
+
+networks:
+  socialnet:
+    driver: bridge

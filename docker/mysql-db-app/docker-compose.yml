@@ -1,0 +1,32 @@
+version: '3'
+services:
+  mysql:
+    build:
+      context: ./mysql
+    container_name: socialnet_mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - socialnet
+
+  goapp:
+    build:
+      context: ./app
+    container_name: socialnet_app
+    depends_on:
+       mysql:
+          condition: service_healthy
+    restart: always
+    tty: true
+    stdin_open: true
+    ports:
+      - "8800:8800"
+    networks:
+      - socialnet
+
+networks:
+  socialnet:
+    driver: bridge

@@ -1,0 +1,27 @@
+storage:
+  #type pgsql / mysql
+  type: pgsql
+
+bindings:
+  port: 8800
+  address: 0.0.0.0 # 0.0.0.0 - all interfaces / ip address for binding
+
+httplog:
+  #if logfile is empty or destination is not accessible service does logging into the current directory
+  logfile: 
+
+
+#if storage type=memory following line are omitted
+
+#due security reasons, service gets username and password for database from env settings
+env:
+  dbuser: SOCIALNET_DB_USER
+  dbpass: SOCIALNET_DB_PASS
+
+db:
+  port: 5432
+  address: pgsql
+  db: snet
+  maxopenconns: 5 #10 default
+  maxidleconns: 5 #10 default
+  maxidletime: 5m # 15m default value if omitted. f.e: 1h5m10s, 10m...
