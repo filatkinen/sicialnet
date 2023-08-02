@@ -55,9 +55,9 @@ func NewConfig(in string) (Config, error) {
 		DB: DBConfig{
 			DBUser:       os.Getenv(viper.GetString("env.dbuser")),
 			DBPass:       os.Getenv(viper.GetString("env.dbpass")),
-			DBAddress:    viper.GetString("db.address"),
-			DBPort:       viper.GetString("db.port"),
-			DBName:       viper.GetString("db.db"),
+			DBAddress:    os.Getenv(viper.GetString("env.address")),
+			DBPort:       os.Getenv(viper.GetString("env.port")),
+			DBName:       os.Getenv(viper.GetString("env.db")),
 			MaxOpenConns: viper.GetInt("db.maxopenconns"),
 			MaxIdleConns: viper.GetInt("db.maxidleconns"),
 			MaxIdleTime:  duration,

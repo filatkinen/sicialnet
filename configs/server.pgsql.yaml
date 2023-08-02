@@ -17,11 +17,11 @@ httplog:
 env:
   dbuser: SOCIALNET_DB_USER
   dbpass: SOCIALNET_DB_PASS
+  db: SOCIALNET_DB
+  address: SOCIALNET_DB_ADDRESS
+  port: SOCIALNET_DB_PORT
 
 db:
-  port: 5432
-  address: localhost
-  db: snet
   maxopenconns: 5 #10 default
   maxidleconns: 5 #10 default
   maxidletime: 5m # 15m default value if omitted. f.e: 1h5m10s, 10m...
