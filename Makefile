@@ -11,14 +11,14 @@ build:
 	go build -v -o $(BIN)  ./cmd/server
 
 run-mysql: build
-	SOCIALNET_DB_PORT=3306 $(BIN) -config ./configs/server.mysql.yaml
+	SOCIALNET_DB_TYPE=mysql SOCIALNET_DB_PORT=3306 $(BIN) -config ./configs/server.yaml
 
 run-pgsql: build
-	SOCIALNET_DB_PORT=5432 $(BIN) -config ./configs/server.pgsql.yaml
+	SOCIALNET_DB_TYPE=pgsql SOCIALNET_DB_PORT=5432 $(BIN) -config ./configs/server.yaml
 
 
 test-mysql:
-	SOCIALNET_DB_PORT=3306 go test -v -race  ./... -tags mysql
+	SOCIALNET_DB_TYPE=mysql SOCIALNET_DB_PORT=3306 go test -v -race  ./... -tags mysql
 
 test-pgsql:
-	SOCIALNET_DB_PORT=5432 go test -v -race  ./... -tags pgsql
+	SOCIALNET_DB_TYPE=pgsql SOCIALNET_DB_PORT=5432 go test -v -race  ./... -tags pgsql

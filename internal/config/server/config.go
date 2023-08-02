@@ -48,7 +48,7 @@ func NewConfig(in string) (Config, error) {
 	}
 
 	config := Config{
-		StoreType:         viper.GetString("storage.type"),
+		StoreType:         os.Getenv(viper.GetString("env.type")),
 		ServerPort:        viper.GetString("bindings.port"),
 		ServerAddress:     viper.GetString("bindings.address"),
 		ServerHTTPLogfile: viper.GetString("httplog.logfile"),

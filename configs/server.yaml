@@ -1,6 +1,6 @@
-storage:
-  #type pgsql / mysql
-  type: mysql
+#storage:
+#  #type pgsql / mysql
+#  type: pgsql
 
 bindings:
   port: 8800
@@ -20,6 +20,7 @@ env:
   db: SOCIALNET_DB
   address: SOCIALNET_DB_ADDRESS
   port: SOCIALNET_DB_PORT
+  type: SOCIALNET_DB_TYPE
 
 db:
   maxopenconns: 5 #10 default

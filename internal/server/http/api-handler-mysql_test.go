@@ -15,7 +15,12 @@ import (
 func TestHttpMysql(t *testing.T) {
 	_ = os.Setenv("SOCIALNET_DB_USER", "socialnet")
 	_ = os.Setenv("SOCIALNET_DB_PASS", "socialnet")
-	config, err := server.NewConfig("../../../configs/server.mysql.yaml")
+	_ = os.Setenv("SOCIALNET_DB", "snet")
+	_ = os.Setenv("SOCIALNET_DB_ADDRESS", "localhost")
+	_ = os.Setenv("SOCIALNET_PORT", "3306")
+	_ = os.Setenv("SOCIALNET_DB_TYPE", "mysql")
+
+	config, err := server.NewConfig("../../../configs/server.yaml")
 	if err != nil {
 		log.Fatalf("error reading config file %v", err)
 	}
