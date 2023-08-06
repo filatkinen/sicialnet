@@ -17,6 +17,7 @@ type Server struct {
 	httplog    *httplog
 	app        *socialapp.App
 	reqCounter *RID
+	promData   *promData
 }
 
 func NewServer(config server.Config, log *log.Logger) (*Server, error) {
@@ -38,6 +39,7 @@ func NewServer(config server.Config, log *log.Logger) (*Server, error) {
 		app:        app,
 		reqCounter: NewRID(),
 	}
+	s.promData = NewPromData()
 	s.srv.Handler = s.NewRouter()
 	return s, nil
 }

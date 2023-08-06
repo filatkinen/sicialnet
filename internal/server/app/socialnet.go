@@ -69,7 +69,7 @@ func newStorage(config server.Config) (storage.Storage, error) {
 		}
 		return stor, err
 	default:
-		return nil, errors.New("bad type store type in config file")
+		return nil, errors.New("bad type store type in env")
 	}
 }
 

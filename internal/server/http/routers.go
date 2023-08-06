@@ -1,6 +1,7 @@
 package internalhttp
 
 import (
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"net/http"
 	"strings"
 
@@ -138,9 +139,9 @@ func (s *Server) NewRouter() http.Handler {
 		var handler http.Handler
 		handler = route.HandlerFunc
 		if route.NeedAuthorize {
-			handler = s.addRequestCounter(s.Logger(s.CheckSession(handler), route.Name))
+			handler = s.prometheusMiddleware(s.addRequestCounter(s.Logger(s.CheckSession(handler), route.Name)), route.Pattern)
 		} else {
-			handler = s.addRequestCounter(s.Logger(handler, route.Name))
+			handler = s.prometheusMiddleware(s.addRequestCounter(s.Logger(handler, route.Name)), route.Pattern)
 		}
 
 		router.
@@ -149,6 +150,6 @@ func (s *Server) NewRouter() http.Handler {
 			Name(route.Name).
 			Handler(handler)
 	}
-
+	router.Path("/metrics").Handler(promhttp.Handler())
 	return router
 }
