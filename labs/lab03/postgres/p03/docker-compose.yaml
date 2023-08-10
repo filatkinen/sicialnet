@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  postgres:
+    container_name: postgres03
+    image: postgres
+    # ports:
+    #   - 5432:5432
+    expose:
+      - 5432
+    volumes:
+      - ./postgres03/:/var/lib/postgresql/data
+      # - ./full-dump/:/docker-entrypoint-initdb.d/
+    environment:
+      POSTGRES_PASSWORD: pass
+      # POSTGRES_DB: snet
+   
+    networks:
+      - snet  
+
+  postgres-exporter:
+    container_name: postgres-exporter03
+    image: prometheuscommunity/postgres-exporter
+    # ports:
+    #   - 9187:9187
+    expose:
+      - 9167
+    environment:
+      DATA_SOURCE_NAME: "postgresql://socialnet:socialnet@postgres03:5432/snet?sslmode=disable&Timezone=UTC"
+    networks:
+      - snet  
+
+networks:
+  snet:
+      name: socialnet
+      external: true

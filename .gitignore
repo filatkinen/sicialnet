@@ -23,3 +23,10 @@ ehthumbs.db
 Thumbs.db
 .vscode/
 *.bak
+grafana
+full-dump
+postgres01
+postgres02
+postgres03
+p.csv
+people.csv

@@ -41,7 +41,7 @@ func NewPromData() *promData {
 		}, []string{"path"}),
 	}
 	prometheus.Register(pr.totalRequests)
-	prometheus.Register(pr.httpDuration)
+	prometheus.Register(pr.responseStatus)
 	prometheus.Register(pr.totalRequests)
 	return &pr
 }

@@ -1,0 +1,26 @@
+version: '3'
+services:
+  goapp:
+    build:
+      context: .
+    container_name: goapp
+    # restart: always
+    tty: true
+    stdin_open: true
+    ports:
+      - "8800:8800"
+    networks:
+      - snet
+    environment:
+      - SOCIALNET_DB=snet
+      - SOCIALNET_DB_PASS=socialnet
+      - SOCIALNET_DB_USER=socialnet
+      - SOCIALNET_DB_PORT=5432
+      - SOCIALNET_DB_TYPE=pgsql
+      - SOCIALNET_DB_ADDRESS=postgres02
+
+networks:
+  snet:
+      name: socialnet
+      external: true
+

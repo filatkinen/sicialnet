@@ -1,0 +1,57 @@
+version: "3.9"
+
+services:
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    # user: '1000'
+    volumes:
+      - ./grafana:/var/lib/grafana:rw
+    ports:
+      - 3000:3000
+    networks:
+      - snet
+  
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - snet
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:latest
+    container_name: cadvisor
+    # ports:
+    # - 8080:8080
+    expose:
+      - 8080
+    volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
+    networks:
+      - snet
+    depends_on:
+    - redis
+
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    networks:
+      - snet
+    expose:
+      - 6379
+    # ports:
+    # - 6379:6379
+
+
+networks:
+  snet:
+      name: socialnet
+      external: true

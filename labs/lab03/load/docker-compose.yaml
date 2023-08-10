@@ -1,0 +1,22 @@
+version: '3'
+services:
+  load:
+    build:
+      context: .
+    container_name: load
+    # restart: always
+    tty: true
+    stdin_open: true
+    # ports:
+    #   - "8800:8800"
+    networks:
+      - snet
+    environment:
+      - DBPASS=socialnet
+      - DBHOST=postgres01
+
+networks:
+  snet:
+      name: socialnet
+      external: true
+

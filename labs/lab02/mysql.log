@@ -1,0 +1,194 @@
+
+mysql> EXPLAIN select * from users where first_name like 'Иван%' and second_name like 'Бес%';
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| EXPLAIN                                                                                                                                                                  |
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+| -> Filter: ((users.first_name like 'Иван%') and (users.second_name like 'Бес%'))  (cost=107914 rows=12264)
+    -> Table scan on users  (cost=107914 rows=993595)
+        |
++--------------------------------------------------------------------------------------------------------------------------------------------------------------------------+
+1 row in set (0.00 sec)
+
+
+
+hey -n 10 -c 1 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес'
+
+Summary:
+  Total:	15.1099 secs
+  Slowest:	1.5226 secs
+  Fastest:	1.4996 secs
+  Average:	1.5110 secs
+  Requests/sec:	0.6618
+  
+
+Response time histogram:
+  1.500 [1]	|■■■■■■■■■■■■■■■■■■■■
+  1.502 [1]	|■■■■■■■■■■■■■■■■■■■■
+  1.504 [1]	|■■■■■■■■■■■■■■■■■■■■
+  1.506 [0]	|
+  1.509 [0]	|
+  1.511 [2]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  1.513 [0]	|
+  1.516 [2]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  1.518 [1]	|■■■■■■■■■■■■■■■■■■■■
+  1.520 [1]	|■■■■■■■■■■■■■■■■■■■■
+  1.523 [1]	|■■■■■■■■■■■■■■■■■■■■
+
+
+Latency distribution:
+  10% in 1.4997 secs
+  25% in 1.5100 secs
+  50% in 1.5138 secs
+  75% in 1.5186 secs
+  90% in 1.5226 secs
+  0% in 0.0000 secs
+  0% in 0.0000 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0000 secs, 1.4996 secs, 1.5226 secs
+  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0001 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0001 secs
+  resp wait:	1.5108 secs, 1.4995 secs, 1.5225 secs
+  resp read:	0.0001 secs, 0.0001 secs, 0.0001 secs
+
+Status code distribution:
+  [200]	10 responses
+
+
+
+hey -n 100 -c 10 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+
+Summary:
+  Total:	32.6865 secs
+  Slowest:	6.5508 secs
+  Fastest:	1.6266 secs
+  Average:	3.0561 secs
+  Requests/sec:	3.0594
+  
+
+Response time histogram:
+  1.627 [1]	|■
+  2.119 [34]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  2.611 [0]	|
+  3.104 [0]	|
+  3.596 [48]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  4.089 [0]	|
+  4.581 [0]	|
+  5.074 [12]	|■■■■■■■■■■
+  5.566 [0]	|
+  6.058 [0]	|
+  6.551 [5]	|■■■■
+
+
+Latency distribution:
+  10% in 1.6340 secs
+  25% in 1.6385 secs
+  50% in 3.2664 secs
+  75% in 3.2776 secs
+  90% in 4.9008 secs
+  95% in 6.5221 secs
+  99% in 6.5508 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0001 secs, 1.6266 secs, 6.5508 secs
+  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0004 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0003 secs
+  resp wait:	3.0560 secs, 1.6265 secs, 6.5501 secs
+  resp read:	0.0000 secs, 0.0000 secs, 0.0001 secs
+
+Status code distribution:
+  [200]	100 responses
+
+
+
+
+hey -n 1000 -c 100 -t 0 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+
+Summary:
+  Total:	337.3888 secs
+  Slowest:	297.5786 secs
+  Fastest:	1.5543 secs
+  Average:	25.2815 secs
+  Requests/sec:	2.9639
+  
+
+Response time histogram:
+  1.554 [1]	|
+  31.157 [779]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  60.759 [121]	|■■■■■■
+  90.362 [40]	|■■
+  119.964 [20]	|■
+  149.566 [11]	|■
+  179.169 [11]	|■
+  208.771 [7]	|
+  238.374 [1]	|
+  267.976 [6]	|
+  297.579 [3]	|
+
+
+Latency distribution:
+  10% in 3.3414 secs
+  25% in 5.0195 secs
+  50% in 11.4449 secs
+  75% in 26.8221 secs
+  90% in 60.3494 secs
+  95% in 106.0476 secs
+  99% in 234.8641 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0006 secs, 1.5543 secs, 297.5786 secs
+  DNS-lookup:	0.0001 secs, 0.0000 secs, 0.0088 secs
+  req write:	0.0001 secs, 0.0000 secs, 0.0068 secs
+  resp wait:	25.2806 secs, 1.5542 secs, 297.5786 secs
+  resp read:	0.0000 secs, 0.0000 secs, 0.0004 secs
+
+Status code distribution:
+  [200]	1000 responses
+
+
+
+
+hey -n 3000 -c 1000 -t 0 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес'
+
+Summary:
+  Total:	987.2750 secs
+  Slowest:	982.3998 secs
+  Fastest:	1.5457 secs
+  Average:	220.2241 secs
+  Requests/sec:	3.0387
+  
+
+Response time histogram:
+  1.546 [1]	|
+  99.631 [1234]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  197.717 [579]	|■■■■■■■■■■■■■■■■■■■
+  295.802 [327]	|■■■■■■■■■■■
+  393.887 [242]	|■■■■■■■■
+  491.973 [203]	|■■■■■■■
+  590.058 [143]	|■■■■■
+  688.144 [101]	|■■■
+  786.229 [83]	|■■■
+  884.314 [51]	|■■
+  982.400 [36]	|■
+
+
+Latency distribution:
+  10% in 10.0489 secs
+  25% in 43.0538 secs
+  50% in 141.9484 secs
+  75% in 339.4502 secs
+  90% in 564.8947 secs
+  95% in 705.6155 secs
+  99% in 906.5254 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0209 secs, 1.5457 secs, 982.3998 secs
+  DNS-lookup:	0.0066 secs, 0.0000 secs, 0.1053 secs
+  req write:	0.0068 secs, 0.0000 secs, 0.0609 secs
+  resp wait:	220.1956 secs, 1.5456 secs, 982.2938 secs
+  resp read:	0.0000 secs, 0.0000 secs, 0.0003 secs
+
+Status code distribution:
+  [200]	3000 responses
+
+

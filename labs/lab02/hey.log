@@ -1,0 +1,14 @@
+ 1961  hey -n 10 -c 1 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Рас' >>mysql.log
+ 1962  hey -n 10 -c 1 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+ 1963  hey -n 50 -c 10 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+ 1964  hey -n 100 -c 10 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+ 1965  hey -n 1000 -c 100 -t 0 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+ 1966  hey -n 1000 -c 1000 -t 0 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+ 1967* hey -n 3000 -c 1000 -t 0 -m GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес'
+ 1968  hey -n 50 -c 10 -m -o 1.csv GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+ 1969  hey -n 50 -c 10 -m -o csv GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+ 1970  hey -n 50 -c 10 -o 1.csv -m  GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес' >>mysql.log
+ 1971  hey -n 50 -c 10 -o one -m  GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес'
+ 1973  hey -n 10 -c 10 -o csv -m  GET 'http://localhost:8800/user/search?first_name=Иван&second_name=Бес'
+ 1980  history |grep hey
+ 1981  history |grep hey>hey.log
