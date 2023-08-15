@@ -1,0 +1,52 @@
+version: '3'
+services:
+  pgsql:
+    build:
+      context: ./pgsql
+    container_name: socialnet_pgsql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - socialnet
+
+  goapp:
+    build:
+      context: ./app
+    container_name: socialnet_app
+    depends_on:
+       pgsql:
+          condition: service_healthy
+    restart: always
+    tty: true
+    stdin_open: true
+    ports:
+      - "8800:8800"
+    networks:
+      - snet
+    environment:
+      - SOCIALNET_DB=snet
+      - SOCIALNET_DB_PASS=socialnet
+      - SOCIALNET_DB_USER=socialnet
+      - SOCIALNET_DB_PORT=5432
+      - SOCIALNET_DB_TYPE=pgsql
+      - SOCIALNET_DB_ADDRESS=socialnet_pgsql
+      - SOCIALNET_REDIS_ADDRESS=redis_app;
+      - SOCIALNET_REDIS_PORT=6379
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    networks:
+      - snet
+    expose:
+      - 6379
+    # ports:
+    # - 6379:6379
+
+networks:
+  snet:
+      name: socialnet
+      external: true

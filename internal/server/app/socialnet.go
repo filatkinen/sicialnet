@@ -6,7 +6,6 @@ import (
 	"github.com/filatkinen/socialnet/internal/common"
 	"github.com/filatkinen/socialnet/internal/config/server"
 	"github.com/filatkinen/socialnet/internal/storage"
-	mysqlstorage "github.com/filatkinen/socialnet/internal/storage/mysql"
 	pgsqlstorage "github.com/filatkinen/socialnet/internal/storage/pgsql"
 	"log"
 	"time"
@@ -17,11 +16,12 @@ type App struct {
 	storage storage.Storage
 }
 
-const TokenTTL = time.Hour * 24
+const TokenTTL = time.Hour * 24 * 365
 
 var (
 	ErrorUserNotFound    = errors.New("user not found")
 	ErrorUserPassInvalid = errors.New("user pass is invalid")
+	ErrorPostsNotFound   = errors.New("posts not found")
 
 	ErrorTokenNotFound = errors.New("token not found")
 	ErrorTokenExpire   = errors.New("token expire")
@@ -48,16 +48,16 @@ func newStorage(config server.Config) (storage.Storage, error) {
 	switch config.StoreType {
 	//case "memory":
 	//	return memorystorage.New(), nil
-	case "mysql":
-		stor, err := mysqlstorage.New(config)
-		if err != nil {
-			return nil, err
-		}
-		err = stor.Connect(ctx)
-		if err != nil {
-			return nil, err
-		}
-		return stor, err
+	//case "mysql":
+	//	stor, err := mysqlstorage.New(config)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	err = stor.Connect(ctx)
+	//	if err != nil {
+	//		return nil, err
+	//	}
+	//	return stor, err
 	case "pgsql":
 		stor, err := pgsqlstorage.New(config)
 		if err != nil {
@@ -113,7 +113,7 @@ func (a *App) CheckToken(ctx context.Context, tokenString string) (string, error
 		}
 		return "", err
 	}
-	if token.Expire.After(time.Now().UTC()) {
+	if token.Expire.Before(time.Now().UTC()) {
 		err = a.storage.TokenDelete(ctx, common.Hasher(tokenString))
 		return "", errors.Join(err, ErrorTokenExpire)
 	}
@@ -178,6 +178,13 @@ func (a *App) UserGet(ctx context.Context, userID string) (*storage.User, error)
 	return u, nil
 }
 
+func (a *App) UserGetRandom(ctx context.Context) (*storage.User, error) {
+	u, err := a.storage.UserGetRandom(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
+}
 func (a *App) UserSearch(ctx context.Context, firstNameMask string, secondNameMask string) ([]*storage.User, error) {
 	usersGet, err := a.storage.UserSearch(ctx, firstNameMask, secondNameMask)
 	if err != nil {
@@ -187,6 +194,41 @@ func (a *App) UserSearch(ctx context.Context, firstNameMask string, secondNameMa
 		return nil, err
 	}
 	return usersGet, nil
+}
+
+func (a *App) UserAddPost(ctx context.Context, userID string, post string) (string, error) {
+	id, err := storage.UUID()
+	if err != nil {
+		return "", err
+	}
+	p := storage.Post{}
+	p.PostId = id
+	p.PostDate = time.Now().UTC().Round(time.Millisecond)
+	p.UserId = userID
+	p.PostText = post
+	id, err = a.storage.UserAddPost(ctx, &p)
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
+
+func (a *App) UserAddFriend(ctx context.Context, userID string, friendID string) error {
+	return a.storage.UserAddFriend(ctx, userID, friendID)
+}
+
+func (a *App) UserGetFriendsPosts(ctx context.Context, userID string, offset int, limit int) ([]*storage.Post, error) {
+	if limit == 0 {
+		limit = 10
+	}
+	posts, err := a.storage.UserGetFriendsPosts(ctx, userID, offset, limit)
+	if err != nil {
+		if errors.Is(err, storage.ErrRecordNotFound) {
+			return nil, ErrorPostsNotFound
+		}
+		return nil, err
+	}
+	return posts, nil
 }
 
 func (a *App) GetAge(ctx context.Context, birthDay time.Time) int {

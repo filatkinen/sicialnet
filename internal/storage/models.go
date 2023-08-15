@@ -28,6 +28,13 @@ type User struct {
 	City       *string    `json:"city,omitempty"`
 }
 
+type Post struct {
+	PostId   string    `json:"post_id,omitempty"`
+	UserId   string    `json:"friend_id,omitempty"`
+	PostText string    `json:"post,omitempty"`
+	PostDate time.Time `json:"post_date,omitempty"`
+}
+
 func UUID() (string, error) {
 	b := make([]byte, 16)
 	_, err := rand.Read(b)

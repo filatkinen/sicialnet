@@ -51,6 +51,10 @@ type PostCreateBody struct {
 	Text string `json:"text"`
 }
 
+type PostCreateResponse struct {
+	Id string `json:"id"`
+}
+
 type UserLoginResponse struct {
 	Token string `json:"token,omitempty"`
 }

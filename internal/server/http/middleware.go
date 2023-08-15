@@ -76,7 +76,7 @@ func (s *Server) CheckSession(next http.Handler) http.Handler {
 		prefix := "Bearer "
 		authHeader := r.Header.Get("Authorization")
 		reqToken := strings.TrimPrefix(authHeader, prefix)
-		if authHeader == "" || reqToken == authHeader || len(authHeader) != 26 {
+		if authHeader == "" || reqToken == authHeader || len(reqToken) != 26 {
 			s.ClientError(w, http.StatusBadRequest, "bad auth header")
 			return
 		}

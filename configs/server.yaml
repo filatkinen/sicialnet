@@ -22,6 +22,10 @@ env:
   port: SOCIALNET_DB_PORT
   type: SOCIALNET_DB_TYPE
 
+  redisport: SOCIALNET_REDIS_PORT
+  redisaddress: SOCIALNET_REDIS_ADDRESS
+
+
 db:
   maxopenconns: 5 #10 default
   maxidleconns: 5 #10 default

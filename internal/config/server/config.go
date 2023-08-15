@@ -19,12 +19,18 @@ type DBConfig struct {
 	MaxIdleTime  time.Duration
 }
 
+type RedisConfig struct {
+	RedisPort    string
+	RedisAddress string
+}
+
 type Config struct {
 	StoreType         string
 	ServerPort        string
 	ServerAddress     string
 	ServerHTTPLogfile string
 	DB                DBConfig
+	Redis             RedisConfig
 }
 
 func NewConfig(in string) (Config, error) {
@@ -53,14 +59,19 @@ func NewConfig(in string) (Config, error) {
 		ServerAddress:     viper.GetString("bindings.address"),
 		ServerHTTPLogfile: viper.GetString("httplog.logfile"),
 		DB: DBConfig{
-			DBUser:       os.Getenv(viper.GetString("env.dbuser")),
-			DBPass:       os.Getenv(viper.GetString("env.dbpass")),
-			DBAddress:    os.Getenv(viper.GetString("env.address")),
-			DBPort:       os.Getenv(viper.GetString("env.port")),
-			DBName:       os.Getenv(viper.GetString("env.db")),
+			DBUser:    os.Getenv(viper.GetString("env.dbuser")),
+			DBPass:    os.Getenv(viper.GetString("env.dbpass")),
+			DBAddress: os.Getenv(viper.GetString("env.address")),
+			DBPort:    os.Getenv(viper.GetString("env.port")),
+			DBName:    os.Getenv(viper.GetString("env.db")),
+
 			MaxOpenConns: viper.GetInt("db.maxopenconns"),
 			MaxIdleConns: viper.GetInt("db.maxidleconns"),
 			MaxIdleTime:  duration,
+		},
+		Redis: RedisConfig{
+			RedisPort:    os.Getenv(viper.GetString("env.redisport")),
+			RedisAddress: os.Getenv(viper.GetString("env.redisaddress")),
 		},
 	}
 

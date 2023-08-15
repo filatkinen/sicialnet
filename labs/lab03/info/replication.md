@@ -1,6 +1,6 @@
 # Репликация в Postgres
-
 sudo setfacl -m u:$(id -u):rwx -R pgslave
+
 
 1. Создаем сеть, запоминаем адрес
 
@@ -86,7 +86,7 @@ primary_conninfo = 'host=postgres01 port=5432 user=replicator password=pass appl
 
 touch postgres03/standby.signal
 
-docker run -dit -v $PWD/pgasyncslave/:/var/lib/postgresql/data -e POSTGRES_PASSWORD=pass -p 25432:5432 --network=pgnet --restart=unless-stopped --name=pgasyncslave postgres
+
 
 
 
@@ -193,7 +193,31 @@ synchronous_standby_names = 'ANY 1 (pgmaster, pgasyncslave)'
 primary_conninfo = 'host=postgres02 port=5432 user=replicator password=pass application_name=postgres03'
 
 
+18. Смотрим статус репликации на новом мастере
 
+ select application_name, sync_state from pg_stat_replication;
+ application_name | sync_state 
+------------------+------------
+ postgres03       | quorum
+(1 row)
+
+19. Вставляем запись на мастере в таблицу
+snet=# INSERT INTO test (uid) VALUES ('10');
+INSERT 0 1
+
+select * from test where uid='10';
+   id   |                 uid                  
+--------+--------------------------------------
+ 125560 | 10                                  
+(1 row)
+
+
+20. Проверяяем что запись появлась на слейве:
+select * from test where uid='10';
+   id   |                 uid                  
+--------+--------------------------------------
+ 125560 | 10                                  
+(1 row)
 
 
 

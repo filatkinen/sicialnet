@@ -8,6 +8,7 @@ import (
 	"github.com/filatkinen/socialnet/internal/config/server"
 	"github.com/filatkinen/socialnet/internal/storage"
 	_ "github.com/lib/pq" // import pq
+	"math/rand"
 	"time"
 )
 
@@ -117,6 +118,105 @@ func (s *Storage) UserGet(ctx context.Context, userID string) (*storage.User, er
 		*r.BirthDate = r.BirthDate.UTC()
 	}
 	return &r, nil
+}
+
+func (s *Storage) UserGetRandom(ctx context.Context) (*storage.User, error) {
+	query := `select count(user_id) from users`
+	var count int
+	if err := s.db.QueryRowContext(ctx, query).Scan(&count); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, storage.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+	offset := r1.Intn(count)
+
+	r := storage.User{}
+	query = `select  user_id, first_name, second_name, sex,biography, city, birthdate from users
+			LIMIT $1 OFFSET 1`
+	if err := s.db.QueryRowContext(ctx, query, offset).
+		Scan(&r.Id, &r.FirstName, &r.SecondName, &r.Sex, &r.Biography, &r.City, &r.BirthDate); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, storage.ErrRecordNotFound
+		}
+		return nil, err
+	}
+	if r.BirthDate != nil {
+		*r.BirthDate = r.BirthDate.UTC()
+	}
+	return &r, nil
+}
+
+func (s *Storage) UserAddPost(ctx context.Context, post *storage.Post) (string, error) {
+	query := `INSERT INTO posts  (post_id, user_id, post_date, post) 
+			  VALUES ($1,$2,$3,$4) RETURNING post_id`
+	var id string
+	err := s.db.QueryRowContext(ctx, query, post.PostId, post.UserId, post.PostDate, post.PostText).Scan(&id)
+	return id, err
+}
+
+func (s *Storage) UserAddFriend(ctx context.Context, userID string, friendID string) error {
+	query := `INSERT INTO friends  (user_id, friend_id) 
+			  VALUES ($1,$2)`
+
+	_, err := s.db.ExecContext(ctx, query, userID, friendID)
+	return err
+}
+
+func (s *Storage) UserGetFriends(ctx context.Context, userID string) ([]string, error) {
+	query := `SELECT friend_id
+	FROM friends
+	WHERE user_id =$1`
+	rows, err := s.db.QueryContext(ctx, query, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var result []string
+	for rows.Next() {
+		var friend string
+		err = rows.Scan(
+			&friend,
+		)
+		result = append(result, friend)
+	}
+	if len(result) == 0 {
+		return nil, storage.ErrRecordNotFound
+	}
+	return result, nil
+}
+
+func (s *Storage) UserGetFriendsPosts(ctx context.Context, userID string, offset int, limit int) ([]*storage.Post, error) {
+	query := `select post_id,user_id,post_date, post from posts
+    where posts.user_id = ANY(
+		select  friends.friend_id from friends
+    	where friends.user_id=$1
+        )
+		ORDER BY post_date
+		offset $2 limit $3`
+
+	rows, err := s.db.QueryContext(ctx, query, userID, offset, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var result []*storage.Post
+	for rows.Next() {
+		var friend storage.Post
+		err = rows.Scan(
+			&friend.PostId,
+			&friend.UserId,
+			&friend.PostDate,
+			&friend.PostText,
+		)
+		result = append(result, &friend)
+	}
+	if len(result) == 0 {
+		return nil, storage.ErrRecordNotFound
+	}
+	return result, nil
 }
 
 func (s *Storage) TokenAdd(ctx context.Context, token *storage.Token) error {
@@ -257,6 +357,9 @@ func (s *Storage) UserSearch(ctx context.Context, firstNameMask string, secondNa
 			&user.City,
 			&user.BirthDate,
 		)
+		if err != nil {
+			return nil, err
+		}
 		result = append(result, &user)
 	}
 	if len(result) == 0 {

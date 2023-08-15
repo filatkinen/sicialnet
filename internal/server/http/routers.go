@@ -131,6 +131,13 @@ func (s *Server) NewRouter() http.Handler {
 			s.UserSearchGet,
 			false,
 		},
+		Route{
+			"PostUpdateCache",
+			strings.ToUpper("Get"),
+			"/postsupdate",
+			s.PostUpdateCache,
+			false,
+		},
 	}
 
 	router := mux.NewRouter().StrictSlash(true)

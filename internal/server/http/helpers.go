@@ -49,8 +49,8 @@ func (s *Server) writeHTTPJsonOK(w http.ResponseWriter, value any) {
 	fmt.Fprintln(w, data)
 }
 
-//func (s *Server) writeHTTPTextOK(w http.ResponseWriter, value string) {
-//	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-//	w.WriteHeader(http.StatusOK)
-//	fmt.Fprintln(w, value)
-//}
+func (s *Server) writeHTTPTextOK(w http.ResponseWriter, value string) {
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	fmt.Fprintln(w, value)
+}

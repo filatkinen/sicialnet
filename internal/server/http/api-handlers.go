@@ -9,6 +9,7 @@ import (
 	"github.com/filatkinen/socialnet/internal/storage"
 	"github.com/gorilla/mux"
 	"net/http"
+	"strconv"
 	"time"
 )
 
@@ -93,7 +94,7 @@ func (s *Server) UserRegisterPost(w http.ResponseWriter, r *http.Request) {
 func (s *Server) UserGetIdGet(w http.ResponseWriter, r *http.Request) {
 	rID := r.Context().Value(RequestID).(string)
 	vars := mux.Vars(r)
-	userid, ok := vars["id"]
+	userid, ok := vars["user_id"]
 	if !ok {
 		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
 			Message:   "user id was not set in URL",
@@ -171,6 +172,106 @@ func (s *Server) UserSearchGet(w http.ResponseWriter, r *http.Request) {
 	s.writeHTTPJsonOK(w, users)
 }
 
+func (s *Server) PostFeedGet(w http.ResponseWriter, r *http.Request) {
+	rID := r.Context().Value(RequestID).(string)
+	userID := r.Context().Value(ContextUserKey).(string)
+	offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+	limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
+
+	if limit == 0 {
+		limit = 10
+	}
+	var postsGet []*storage.Post
+	var err error
+	if s.cache.Ready() {
+		postsGet = s.cache.UserGetFriendsPosts(userID, offset, limit)
+	} else {
+		postsGet, err = s.app.UserGetFriendsPosts(r.Context(), userID, offset, limit)
+	}
+	if err != nil {
+		if errors.Is(err, socialapp.ErrorPostsNotFound) {
+			s.ClientError(w, http.StatusNotFound, err.Error())
+			return
+		}
+		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
+			Message:   err.Error(),
+			RequestId: rID,
+			Code:      500,
+		})
+		return
+	}
+
+	var posts []*Post
+	for i := range postsGet {
+		var post Post
+		post.Id = postsGet[i].PostId
+		post.Text = postsGet[i].PostText
+		post.AuthorUserId = postsGet[i].UserId
+		posts = append(posts, &post)
+	}
+	s.writeHTTPJsonOK(w, posts)
+}
+
+func (s *Server) PostCreatePost(w http.ResponseWriter, r *http.Request) {
+	rID := r.Context().Value(RequestID).(string)
+	userID := r.Context().Value(ContextUserKey).(string)
+
+	data := make(map[string]interface{})
+	err := json.NewDecoder(r.Body).Decode(&data)
+	if err != nil {
+		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
+			Message:   err.Error(),
+			RequestId: rID,
+			Code:      500,
+		})
+		return
+	}
+
+	text, ok := data["text"].(string)
+	if !ok {
+		s.ClientError(w, http.StatusBadRequest, "")
+		return
+	}
+	id, err := s.app.UserAddPost(r.Context(), userID, text)
+	if err != nil {
+		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
+			Message:   err.Error(),
+			RequestId: rID,
+			Code:      500,
+		})
+		return
+	}
+	s.writeHTTPJsonOK(w, PostCreateResponse{Id: id})
+}
+
+func (s *Server) FriendSetUserIdPut(w http.ResponseWriter, r *http.Request) {
+	rID := r.Context().Value(RequestID).(string)
+	userID := r.Context().Value(ContextUserKey).(string)
+	vars := mux.Vars(r)
+	friendID, ok := vars["user_id"]
+	if !ok {
+		s.ClientError(w, http.StatusBadRequest, "friendID was not set in URL")
+		return
+	}
+	err := s.app.UserAddFriend(r.Context(), userID, friendID)
+	if err != nil {
+		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
+			Message:   err.Error(),
+			RequestId: rID,
+			Code:      500,
+		})
+		return
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) PostUpdateCache(w http.ResponseWriter, r *http.Request) {
+	s.cache.UpdatePostAll()
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+}
+
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Social Network")
 }
@@ -190,22 +291,7 @@ func (s *Server) FriendDeleteUserIdPut(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) FriendSetUserIdPut(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-}
-
-func (s *Server) PostCreatePost(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-}
-
 func (s *Server) PostDeleteIdPut(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-}
-
-func (s *Server) PostFeedGet(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }
