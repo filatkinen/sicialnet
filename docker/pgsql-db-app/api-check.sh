@@ -30,6 +30,8 @@ curl http://localhost:8800/post/feed  -H "Authorization: Bearer ETEYF6C3ERPVPBCN
 
 curl http://localhost:8800/post/feed?limit=100  -H "Authorization: Bearer ETEYF6C3ERPVPBCNGC6X6AP2CY"
 
+hey -n 10000 -c 1000 -H "Authorization: Bearer ETEYF6C3ERPVPBCNGC6X6AP2CY" -m GET 'http://localhost:8800/post/feed?limit=100'
+
 curl http://localhost:8800/postsupdate
 
-curl http://localhost:8800/post/feed?limit=100  -H "Authorization: Bearer ETEYF6C3ERPVPBCNGC6X6AP2CY"
+hey -n 10000 -c 1000 -H "Authorization: Bearer ETEYF6C3ERPVPBCNGC6X6AP2CY" -m GET 'http://localhost:8800/post/feed?limit=100'
