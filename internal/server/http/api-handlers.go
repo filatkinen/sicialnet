@@ -241,6 +241,15 @@ func (s *Server) PostCreatePost(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	go func() {
+		_ = s.cache.AddPost(&storage.Post{
+			PostId:   id,
+			UserId:   userID,
+			PostText: text,
+			PostDate: time.Now(),
+		})
+
+	}()
 	s.writeHTTPJsonOK(w, PostCreateResponse{Id: id})
 }
 
