@@ -19,13 +19,14 @@ type UserCredential struct {
 }
 
 type User struct {
-	Id         string     `json:"id,omitempty"`
-	FirstName  string     `json:"first_name,omitempty"`
-	SecondName *string    `json:"second_name,omitempty"`
-	BirthDate  *time.Time `json:"birthdate,omitempty"`
-	Sex        *string    `json:"sex,omitempty"`
-	Biography  *string    `json:"biography,omitempty"`
-	City       *string    `json:"city,omitempty"`
+	Id            string     `json:"id,omitempty"`
+	FirstName     string     `json:"first_name,omitempty"`
+	SecondName    *string    `json:"second_name,omitempty"`
+	BirthDate     *time.Time `json:"birthdate,omitempty"`
+	Sex           *string    `json:"sex,omitempty"`
+	Biography     *string    `json:"biography,omitempty"`
+	City          *string    `json:"city,omitempty"`
+	DialogShardId *int
 }
 
 type Post struct {
@@ -33,6 +34,12 @@ type Post struct {
 	UserId   string    `json:"friend_id,omitempty"`
 	PostText string    `json:"post,omitempty"`
 	PostDate time.Time `json:"post_date,omitempty"`
+}
+
+type DialogMessage struct {
+	From string `json:"from"`
+	To   string `json:"to"`
+	Text string `json:"text"`
 }
 
 func UUID() (string, error) {

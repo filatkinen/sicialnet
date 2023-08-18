@@ -13,7 +13,7 @@ import (
 
 type App struct {
 	appLog  *log.Logger
-	storage storage.Storage
+	Storage storage.Storage
 }
 
 const TokenTTL = time.Hour * 24 * 365
@@ -37,7 +37,7 @@ func New(servLog *log.Logger, config server.Config) (*App, error) {
 
 	return &App{
 		appLog:  servLog,
-		storage: stor,
+		Storage: stor,
 	}, nil
 }
 
@@ -76,7 +76,7 @@ func newStorage(config server.Config) (storage.Storage, error) {
 func (a *App) Close(ctx context.Context) error {
 	a.appLog.Println("application socialnet stopped")
 
-	err := a.storage.Close(ctx)
+	err := a.Storage.Close(ctx)
 	if err != nil {
 		a.appLog.Println("DB was closed with error:" + err.Error())
 		return err
@@ -97,7 +97,7 @@ func (a *App) SetToken(ctx context.Context, userID string) (string, error) {
 		Expire: time.Now().Add(TokenTTL).Truncate(time.Minute).UTC(),
 		UserID: userID,
 	}
-	err = a.storage.TokenAdd(ctx, &token)
+	err = a.Storage.TokenAdd(ctx, &token)
 	if err != nil {
 		return "", err
 	}
@@ -106,7 +106,7 @@ func (a *App) SetToken(ctx context.Context, userID string) (string, error) {
 
 // CheckToken check if token is valid and return userID
 func (a *App) CheckToken(ctx context.Context, tokenString string) (string, error) {
-	token, err := a.storage.TokenGet(ctx, common.Hasher(tokenString))
+	token, err := a.Storage.TokenGet(ctx, common.Hasher(tokenString))
 	if err != nil {
 		if errors.Is(err, storage.ErrRecordNotFound) {
 			return "", ErrorTokenNotFound
@@ -114,7 +114,7 @@ func (a *App) CheckToken(ctx context.Context, tokenString string) (string, error
 		return "", err
 	}
 	if token.Expire.Before(time.Now().UTC()) {
-		err = a.storage.TokenDelete(ctx, common.Hasher(tokenString))
+		err = a.Storage.TokenDelete(ctx, common.Hasher(tokenString))
 		return "", errors.Join(err, ErrorTokenExpire)
 	}
 
@@ -123,7 +123,7 @@ func (a *App) CheckToken(ctx context.Context, tokenString string) (string, error
 
 // UserLogin check user credentials and gives token
 func (a *App) UserLogin(ctx context.Context, userID string, pass string) (string, error) {
-	u, err := a.storage.UserCredentialGet(ctx, userID)
+	u, err := a.Storage.UserCredentialGet(ctx, userID)
 	if err != nil {
 		if errors.Is(err, storage.ErrRecordNotFound) {
 			return "", ErrorUserNotFound
@@ -154,12 +154,12 @@ func (a *App) UserAdd(ctx context.Context, user *storage.User, pass string) (str
 		return "", err
 	}
 
-	err = a.storage.UserAdd(ctx, user)
+	err = a.Storage.UserAdd(ctx, user)
 	if err != nil {
 		return "", err
 	}
 
-	err = a.storage.UserCredentialSet(ctx, &storage.UserCredential{
+	err = a.Storage.UserCredentialSet(ctx, &storage.UserCredential{
 		UserID:     id,
 		PassBcrypt: cryptedPass,
 	})
@@ -171,7 +171,7 @@ func (a *App) UserAdd(ctx context.Context, user *storage.User, pass string) (str
 }
 
 func (a *App) UserGet(ctx context.Context, userID string) (*storage.User, error) {
-	u, err := a.storage.UserGet(ctx, userID)
+	u, err := a.Storage.UserGet(ctx, userID)
 	if err != nil {
 		return nil, err
 	}
@@ -179,14 +179,14 @@ func (a *App) UserGet(ctx context.Context, userID string) (*storage.User, error)
 }
 
 func (a *App) UserGetRandom(ctx context.Context) (*storage.User, error) {
-	u, err := a.storage.UserGetRandom(ctx)
+	u, err := a.Storage.UserGetRandom(ctx)
 	if err != nil {
 		return nil, err
 	}
 	return u, nil
 }
 func (a *App) UserSearch(ctx context.Context, firstNameMask string, secondNameMask string) ([]*storage.User, error) {
-	usersGet, err := a.storage.UserSearch(ctx, firstNameMask, secondNameMask)
+	usersGet, err := a.Storage.UserSearch(ctx, firstNameMask, secondNameMask)
 	if err != nil {
 		if errors.Is(err, storage.ErrRecordNotFound) {
 			return nil, ErrorUserNotFound
@@ -206,7 +206,7 @@ func (a *App) UserAddPost(ctx context.Context, userID string, post string) (stri
 	p.PostDate = time.Now().UTC().Round(time.Millisecond)
 	p.UserId = userID
 	p.PostText = post
-	id, err = a.storage.UserAddPost(ctx, &p)
+	id, err = a.Storage.UserAddPost(ctx, &p)
 	if err != nil {
 		return "", err
 	}
@@ -214,14 +214,14 @@ func (a *App) UserAddPost(ctx context.Context, userID string, post string) (stri
 }
 
 func (a *App) UserAddFriend(ctx context.Context, userID string, friendID string) error {
-	return a.storage.UserAddFriend(ctx, userID, friendID)
+	return a.Storage.UserAddFriend(ctx, userID, friendID)
 }
 
 func (a *App) UserGetFriendsPosts(ctx context.Context, userID string, offset int, limit int) ([]*storage.Post, error) {
 	if limit == 0 {
 		limit = 10
 	}
-	posts, err := a.storage.UserGetFriendsPosts(ctx, userID, offset, limit)
+	posts, err := a.Storage.UserGetFriendsPosts(ctx, userID, offset, limit)
 	if err != nil {
 		if errors.Is(err, storage.ErrRecordNotFound) {
 			return nil, ErrorPostsNotFound
@@ -235,4 +235,12 @@ func (a *App) GetAge(ctx context.Context, birthDay time.Time) int {
 	y1, _, _ := birthDay.Date()
 	y2, _, _ := time.Now().Date()
 	return y2 - y1
+}
+
+func (a *App) UserDialogSendMessage(ctx context.Context, userID string, friendID string, message string) error {
+	return a.Storage.UserDialogSendMessage(ctx, userID, friendID, message)
+}
+
+func (a *App) UserDialogListdMessages(ctx context.Context, userID string, friendID string) ([]*storage.DialogMessage, error) {
+	return a.Storage.UserDialogListMessages(ctx, userID, friendID)
 }

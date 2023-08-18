@@ -37,10 +37,30 @@ func (s *Server) toJSON(value any) (string, error) {
 	return string(data), nil
 }
 
+func (s *Server) toJSONIdent(value any) (string, error) {
+	data, err := json.MarshalIndent(value, "", " ")
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
 func (s *Server) writeHTTPJsonOK(w http.ResponseWriter, value any) {
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 	data, err := s.toJSON(value)
+	if err != nil {
+		fmt.Fprintln(w, "request OK")
+		fmt.Fprintln(w, "error marshaling response with details of request")
+		return
+	}
+	fmt.Fprintln(w, data)
+}
+
+func (s *Server) writeHTTPJsonOKIdent(w http.ResponseWriter, value any) {
+	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
+	w.WriteHeader(http.StatusOK)
+	data, err := s.toJSONIdent(value)
 	if err != nil {
 		fmt.Fprintln(w, "request OK")
 		fmt.Fprintln(w, "error marshaling response with details of request")

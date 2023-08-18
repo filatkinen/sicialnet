@@ -21,6 +21,8 @@ type Storage interface {
 	UserAddFriend(ctx context.Context, userID string, friendID string) error
 	UserGetFriends(ctx context.Context, userID string) ([]string, error)
 	UserGetFriendsPosts(ctx context.Context, userID string, offset int, limit int) ([]*Post, error)
+	UserDialogSendMessage(ctx context.Context, userID string, friendID string, message string) error
+	UserDialogListMessages(ctx context.Context, userID string, friendID string) ([]*DialogMessage, error)
 
 	TokenAdd(ctx context.Context, token *Token) error
 	TokenDelete(ctx context.Context, hash string) error
@@ -30,6 +32,8 @@ type Storage interface {
 	UserCredentialSet(ctx context.Context, cred *UserCredential) error
 	UserCredentialDelete(ctx context.Context, userID string) error
 	UserCredentialGet(ctx context.Context, userID string) (*UserCredential, error)
+
+	GetShards(ctx context.Context) (err error)
 
 	Close(ctx context.Context) error
 }

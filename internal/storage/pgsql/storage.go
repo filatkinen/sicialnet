@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"github.com/filatkinen/socialnet/internal/common"
 	"github.com/filatkinen/socialnet/internal/config/server"
 	"github.com/filatkinen/socialnet/internal/storage"
 	_ "github.com/lib/pq" // import pq
@@ -12,9 +13,22 @@ import (
 	"time"
 )
 
+var (
+	ErrorConnectShard = errors.New("error connect shard")
+	ErrorWrongShard   = errors.New("wrong shard")
+)
+
+type Shard struct {
+	shardid int
+	dsn     string
+	db      *sql.DB
+	active  bool
+}
+
 type Storage struct { // TODO
-	db  *sql.DB
-	dsn string
+	db     *sql.DB
+	dsn    string
+	shards map[int]Shard
 }
 
 func New(config server.Config) (*Storage, error) {
@@ -25,9 +39,51 @@ func New(config server.Config) (*Storage, error) {
 		return nil, err
 	}
 	return &Storage{
-		db:  db,
-		dsn: dsn,
+		db:     db,
+		dsn:    dsn,
+		shards: make(map[int]Shard),
 	}, nil
+}
+
+func (s *Storage) GetShards(ctx context.Context) (err error) {
+	// closing connections shard and clear
+	for k := range s.shards {
+		if s.shards[k].db != nil {
+			_ = s.shards[k].db.Close()
+			delete(s.shards, k)
+		}
+	}
+
+	query := `select shard_id, dsn, active from shards`
+	rows, err := s.db.QueryContext(ctx, query)
+	if err != nil {
+		return ErrorConnectShard
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var shard Shard
+		var e = rows.Scan(
+			&shard.shardid,
+			&shard.dsn,
+			&shard.active,
+		)
+		if e != nil {
+			return ErrorConnectShard
+		}
+		db, e := sql.Open("postgres", shard.dsn)
+		if e != nil {
+			err = errors.Join(err, e)
+			continue
+		}
+		e = s.db.PingContext(ctx)
+		if e != nil {
+			err = errors.Join(err, e)
+			continue
+		}
+		shard.db = db
+		s.shards[shard.shardid] = shard
+	}
+	return err
 }
 
 func openDB(config server.DBConfig, dsn string) (*sql.DB, error) {
@@ -44,14 +100,27 @@ func openDB(config server.DBConfig, dsn string) (*sql.DB, error) {
 func (s *Storage) Connect(ctx context.Context) error {
 	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
 	defer cancel()
-	return s.db.PingContext(ctx)
+	err := s.db.PingContext(ctx)
+	if err == nil {
+		s.GetShards(ctx)
+	}
+	return err
 }
 
 func (s *Storage) UserAdd(ctx context.Context, user *storage.User) error {
-	query := `INSERT INTO users  (user_id, first_name, second_name, sex, birthdate, biography, city) 
+	query := `select max(shard_id) FROM shards where active='true'`
+	var shardID int
+	if err := s.db.QueryRowContext(ctx, query).Scan(&shardID); err != nil {
+		if err == sql.ErrNoRows {
+			return storage.ErrRecordNotFound
+		}
+		return err
+	}
+
+	query = `INSERT INTO users  (user_id, first_name, second_name, sex, birthdate, biography, city, dialog_shard_id) 
 			  VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING user_id`
 
-	_, err := s.db.ExecContext(ctx, query, user.Id, user.FirstName, user.SecondName, user.Sex, user.BirthDate, user.Biography, user.City)
+	_, err := s.db.ExecContext(ctx, query, user.Id, user.FirstName, user.SecondName, user.Sex, user.BirthDate, user.Biography, user.City, shardID)
 	return err
 }
 
@@ -105,10 +174,10 @@ func (s *Storage) UserUpdate(ctx context.Context, user *storage.User) error {
 }
 func (s *Storage) UserGet(ctx context.Context, userID string) (*storage.User, error) {
 	r := storage.User{Id: userID}
-	query := `select  first_name, second_name, sex,biography, city, birthdate from users
+	query := `select  first_name, second_name, sex,biography, city, birthdate, dialog_shard_id from users
 			where user_id=$1`
 	if err := s.db.QueryRowContext(ctx, query, userID).
-		Scan(&r.FirstName, &r.SecondName, &r.Sex, &r.Biography, &r.City, &r.BirthDate); err != nil {
+		Scan(&r.FirstName, &r.SecondName, &r.Sex, &r.Biography, &r.City, &r.BirthDate, &r.DialogShardId); err != nil {
 		if err == sql.ErrNoRows {
 			return nil, storage.ErrRecordNotFound
 		}
@@ -368,6 +437,90 @@ func (s *Storage) UserSearch(ctx context.Context, firstNameMask string, secondNa
 	return result, nil
 }
 
+func (s *Storage) GetShardNumber(ctx context.Context, userID string, friendID string) (int, error) {
+	query := `select dialog_shard_id from users where user_id=$1`
+	var shard1, shard2 int
+	if err := s.db.QueryRowContext(ctx, query, userID).Scan(&shard1); err != nil {
+		return 0, err
+	}
+	if err := s.db.QueryRowContext(ctx, query, friendID).Scan(&shard2); err != nil {
+		return 0, err
+	}
+	if shard1 > shard2 {
+		return shard1, nil
+	}
+	return shard2, nil
+}
+
+func (s *Storage) UserDialogSendMessage(ctx context.Context, userID string, friendID string, message string) error {
+	shardID, err := s.GetShardNumber(ctx, userID, friendID)
+	if err != nil {
+		return err
+	}
+	shard, ok := s.shards[shardID]
+	if !ok {
+		return ErrorWrongShard
+	}
+	if !shard.active {
+		return ErrorWrongShard
+	}
+	if shard.db == nil {
+		return ErrorWrongShard
+	}
+	dialogID, _ := common.TokenGenerator()
+	query := `INSERT INTO dialogs (dialog_id, user_id, friend_id, message) VALUES($1,$2,$3, $4)`
+	_, err = shard.db.ExecContext(ctx, query, dialogID, userID, friendID, message)
+	return err
+}
+
+func (s *Storage) UserDialogListMessages(ctx context.Context, userID string, friendID string) ([]*storage.DialogMessage, error) {
+	shardID, err := s.GetShardNumber(ctx, userID, friendID)
+	if err != nil {
+		return nil, err
+	}
+	shard, ok := s.shards[shardID]
+	if !ok {
+		return nil, ErrorWrongShard
+	}
+	if !shard.active {
+		return nil, ErrorWrongShard
+	}
+	if shard.db == nil {
+		return nil, ErrorWrongShard
+	}
+
+	query := `select user_id, friend_id, message from dialogs
+         WHERE user_id=$1 AND friend_id=$2
+		 UNION ALL
+		 select user_id, friend_id, message from dialogs
+         WHERE  user_id=$2 AND friend_id=$1`
+
+	rows, err := shard.db.QueryContext(ctx, query, userID, friendID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var result []*storage.DialogMessage
+	for rows.Next() {
+		var dialog storage.DialogMessage
+		err = rows.Scan(
+			&dialog.From,
+			&dialog.To,
+			&dialog.Text,
+		)
+		result = append(result, &dialog)
+	}
+	if len(result) == 0 {
+		return nil, storage.ErrRecordNotFound
+	}
+	return result, nil
+}
+
 func (s *Storage) Close(_ context.Context) error {
+	for k := range s.shards {
+		if s.shards[k].db != nil {
+			_ = s.shards[k].db.Close()
+		}
+	}
 	return s.db.Close()
 }
