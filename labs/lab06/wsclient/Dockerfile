@@ -1,4 +1,4 @@
-FROM golang:1.20-alpine
+FROM golang:latest
 WORKDIR /usr/src/app/
 
 RUN  git  clone https://github.com/filatkinen/socialnet

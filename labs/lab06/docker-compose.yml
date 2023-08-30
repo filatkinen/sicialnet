@@ -14,8 +14,8 @@ services:
 
   rabbitmq:
     image: rabbitmq:3-management
-    hostname: socialnet-rabbit
-    container_name: socialnet-rabbit
+    hostname: socialnet_rabbit
+    container_name: socialnet_rabbit
     healthcheck:
       test: rabbitmq-diagnostics -q ping
       interval: 5s
@@ -57,7 +57,7 @@ services:
       - SOCIALNET_DB_PORT=5432
       - SOCIALNET_DB_TYPE=pgsql
       - SOCIALNET_DB_ADDRESS=socialnet_pgsql
-      - SOCIALNET_REDIS_ADDRESS=redis_app
+      - SOCIALNET_REDIS_ADDRESS=socialnet_redis
       - SOCIALNET_REDIS_PORT=6379
       - RABBIT_USER=rmuser
       - RABBIT_PASS=rmpass
@@ -82,7 +82,7 @@ services:
 
   redis:
     image: redis:latest
-    container_name: redis_app
+    container_name: socialnet_redis
     networks:
       - local
     expose:
