@@ -144,6 +144,13 @@ func (s *Server) NewRouter() http.Handler {
 			"/shardupdate",
 			s.ShardUpdate,
 			false,
+		},
+		Route{
+			"PostFeedPosted",
+			strings.ToUpper("Get"),
+			"/post/feed/posted",
+			s.PostFeedPosted,
+			true,
 		}}
 
 	router := mux.NewRouter().StrictSlash(true)
@@ -151,12 +158,15 @@ func (s *Server) NewRouter() http.Handler {
 	for _, route := range routes {
 		var handler http.Handler
 		handler = route.HandlerFunc
-		if route.NeedAuthorize {
-			handler = s.prometheusMiddleware(s.addRequestCounter(s.Logger(s.CheckSession(handler), route.Name)), route.Pattern)
+		if route.Name == "PostFeedPosted" {
+			handler = s.CheckSession(handler)
 		} else {
-			handler = s.prometheusMiddleware(s.addRequestCounter(s.Logger(handler, route.Name)), route.Pattern)
+			if route.NeedAuthorize {
+				handler = s.prometheusMiddleware(s.addRequestCounter(s.Logger(s.CheckSession(handler), route.Name)), route.Pattern)
+			} else {
+				handler = s.prometheusMiddleware(s.addRequestCounter(s.Logger(handler, route.Name)), route.Pattern)
+			}
 		}
-
 		router.
 			Methods(route.Method).
 			Path(route.Pattern).

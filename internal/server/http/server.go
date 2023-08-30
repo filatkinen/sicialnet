@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"github.com/filatkinen/socialnet/internal/config/server"
+	"github.com/filatkinen/socialnet/internal/rabbit/producer"
 	socialapp "github.com/filatkinen/socialnet/internal/server/app"
 	"github.com/filatkinen/socialnet/internal/storage/caching"
 	"log"
@@ -23,6 +24,8 @@ type Server struct {
 	reqCounter *RID
 	promData   *promData
 	cache      *caching.RedisCache
+	ws         *Ws
+	rabbit     *producer.Producer
 }
 
 func NewServer(config server.Config, log *log.Logger) (*Server, error) {
@@ -52,6 +55,17 @@ func NewServer(config server.Config, log *log.Logger) (*Server, error) {
 	} else {
 		log.Print("Using  redis cache for post(with additional postgres db connection)\n")
 	}
+
+	s.ws, err = newWS(log, config.Rabbit)
+	if err != nil {
+		return nil, err
+	}
+
+	s.rabbit, err = producer.NewProducer(config.Rabbit, log)
+	if err != nil {
+		return nil, err
+	}
+
 	return s, nil
 }
 
@@ -77,6 +91,7 @@ func (s *Server) Stop(ctx context.Context) error {
 		s.log.Printf("HTTP shutdown error: %s\n", err)
 		return err
 	}
+	s.rabbit.Stop()
 	s.log.Println("HTTP graceful shutdown complete.")
 	return nil
 }
@@ -87,6 +102,17 @@ func (s *Server) Close() error {
 		s.log.Print("Closing redis. (with additional postgres db connection)\n")
 		s.cache.Close()
 	}
+
+	if s.ws != nil {
+		e := s.ws.Close()
+		err = errors.Join(err, e)
+	}
+
+	if s.rabbit != nil {
+		e := s.rabbit.Close()
+		err = errors.Join(err, e)
+	}
+
 	if e := s.httplog.close(); e != nil {
 		s.log.Printf("error closing httplog %s\n", e)
 		err = errors.Join(err, e)

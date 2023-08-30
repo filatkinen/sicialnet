@@ -25,6 +25,16 @@ env:
   redisport: SOCIALNET_REDIS_PORT
   redisaddress: SOCIALNET_REDIS_ADDRESS
 
+  rabbituser: RABBIT_USER
+  rabbitpass: RABBIT_PASS
+
+
+rabbit:
+  port: 5672
+  address: localhost
+#  queue: queue-notice
+  exchange: post-exchange
+#  topic: notice
 
 db:
   maxopenconns: 5 #10 default

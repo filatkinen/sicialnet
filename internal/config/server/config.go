@@ -1,6 +1,7 @@
 package server
 
 import (
+	"github.com/filatkinen/socialnet/internal/rabbit"
 	"log"
 	"os"
 	"time"
@@ -31,6 +32,7 @@ type Config struct {
 	ServerHTTPLogfile string
 	DB                DBConfig
 	Redis             RedisConfig
+	Rabbit            rabbit.Config
 }
 
 func NewConfig(in string) (Config, error) {
@@ -72,6 +74,15 @@ func NewConfig(in string) (Config, error) {
 		Redis: RedisConfig{
 			RedisPort:    os.Getenv(viper.GetString("env.redisport")),
 			RedisAddress: os.Getenv(viper.GetString("env.redisaddress")),
+		},
+		Rabbit: rabbit.Config{
+			Port:         viper.GetString("rabbit.port"),
+			Address:      viper.GetString("rabbit.address"),
+			ExchangeName: viper.GetString("rabbit.exchange"),
+			User:         os.Getenv(viper.GetString("env.rabbituser")),
+			Password:     os.Getenv(viper.GetString("env.rabbitpass")),
+			//Queue:        viper.GetString("rabbit.queue"),
+			//Tag:          viper.GetString("rabbit.tag"),
 		},
 	}
 

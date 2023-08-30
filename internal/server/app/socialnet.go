@@ -231,6 +231,10 @@ func (a *App) UserGetFriendsPosts(ctx context.Context, userID string, offset int
 	return posts, nil
 }
 
+func (a *App) UserGetFriends(ctx context.Context, userID string) ([]string, error) {
+	return a.Storage.UserGetFriends(ctx, userID)
+}
+
 func (a *App) GetAge(ctx context.Context, birthDay time.Time) int {
 	y1, _, _ := birthDay.Date()
 	y2, _, _ := time.Now().Date()

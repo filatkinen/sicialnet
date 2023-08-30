@@ -250,6 +250,17 @@ func (s *Server) PostCreatePost(w http.ResponseWriter, r *http.Request) {
 		})
 
 	}()
+
+	err = s.PutPostMessageToRabbit(id, text, userID)
+	if err != nil {
+		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
+			Message:   err.Error(),
+			RequestId: rID,
+			Code:      500,
+		})
+		return
+	}
+
 	s.writeHTTPJsonOK(w, PostCreateResponse{Id: id})
 }
 
@@ -362,6 +373,14 @@ func (s *Server) ShardUpdate(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
+}
+
+func (s *Server) PostFeedPosted(w http.ResponseWriter, r *http.Request) {
+	userID := r.Context().Value(ContextUserKey).(string)
+	err := s.ws.NewConnection(w, r, userID)
+	if err != nil {
+		s.log.Println("Error creating ws comnection " + err.Error())
+	}
 }
 
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {
