@@ -13,23 +13,7 @@ import (
 	"time"
 )
 
-//func newStringPointer(s string) *string {
-//	return &s
-//}
-//
-//func newTimePointer(s time.Time) *time.Time {
-//	return &s
-//}
-//
-//func toJSON(value any) string {
-//	data, err := json.Marshal(value)
-//	if err != nil {
-//		return ""
-//	}
-//	return string(data)
-//}
-
-func main() {
+func main() { //nolint
 	var configFile string
 	var dataFile string
 	flag.StringVar(&configFile, "config", "../../configs/server.yaml", "Path to configuration file")
@@ -44,7 +28,8 @@ func main() {
 
 	config, err := server.NewConfig(configFile)
 	if err != nil {
-		log.Fatalf("error reading config file %v", err)
+		log.Printf("error reading config file %v", err)
+		return
 	}
 
 	ctx := context.Background()
@@ -52,7 +37,8 @@ func main() {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime|log.LUTC)
 	app, err := socialapp.New(logger, config)
 	if err != nil {
-		log.Fatalf("Error creating app %s", err)
+		log.Printf("Error creating app %s", err)
+		return
 	}
 	defer app.Close(ctx)
 
@@ -60,7 +46,7 @@ func main() {
 	wg := sync.WaitGroup{}
 	wg.Add(5)
 	for i := 0; i < 5; i++ {
-		go func(chwork chan string) {
+		go func() {
 			defer wg.Done()
 			for {
 				str, ok := <-chanWork
@@ -83,9 +69,8 @@ func main() {
 					}
 					app.UserAddFriend(ctx, user.Id, friend.Id)
 				}
-				//fmt.Println(toJSON(user))
 			}
-		}(chanWork)
+		}()
 	}
 
 	t1 := time.Now()
@@ -101,7 +86,8 @@ func main() {
 	close(chanWork)
 	wg.Wait()
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
+		return
 	}
 	fmt.Println(count, time.Since(t1))
 

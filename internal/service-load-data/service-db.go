@@ -3,12 +3,8 @@ package main
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"flag"
 	"fmt"
-	"github.com/filatkinen/socialnet/internal/config/server"
-	socialapp "github.com/filatkinen/socialnet/internal/server/app"
-	"github.com/filatkinen/socialnet/internal/storage"
 	"log"
 	"math/rand"
 	"os"
@@ -16,6 +12,10 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/filatkinen/socialnet/internal/config/server"
+	socialapp "github.com/filatkinen/socialnet/internal/server/app"
+	"github.com/filatkinen/socialnet/internal/storage"
 )
 
 func newStringPointer(s string) *string {
@@ -24,14 +24,6 @@ func newStringPointer(s string) *string {
 
 func newTimePointer(s time.Time) *time.Time {
 	return &s
-}
-
-func toJSON(value any) string {
-	data, err := json.Marshal(value)
-	if err != nil {
-		return ""
-	}
-	return string(data)
 }
 
 func main() {
@@ -49,7 +41,8 @@ func main() {
 
 	config, err := server.NewConfig(configFile)
 	if err != nil {
-		log.Fatalf("error reading config file %v", err)
+		log.Printf("error reading config file %v", err)
+		return
 	}
 
 	ctx := context.Background()
@@ -57,46 +50,19 @@ func main() {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime|log.LUTC)
 	app, err := socialapp.New(logger, config)
 	if err != nil {
-		log.Fatalf("Error creating app %s", err)
+		log.Printf("Error creating app %s", err)
+		return
 	}
 	defer app.Close(ctx)
-	//var storageDB storage.Storage
-	//switch config.StoreType {
-	//case "mysql":
-	//	stor, err := mysqlstorage.New(config)
-	//	if err != nil {
-	//		log.Fatalf("Error creating storageDB app %s", err)
-	//	}
-	//	err = stor.Connect(ctx)
-	//	if err != nil {
-	//		log.Fatalf("Error creating storageDB app %s", err)
-	//	}
-	//	log.Println("Using mysql DB")
-	//	storageDB = stor
-	//case "pgsql":
-	//	stor, err := pgsqlstorage.New(config)
-	//	if err != nil {
-	//		log.Fatalf("Error creating storageDB app %s", err)
-	//	}
-	//	err = stor.Connect(ctx)
-	//	if err != nil {
-	//		log.Fatalf("Error creating storageDB app %s", err)
-	//	}
-	//	log.Println("Using pgsql DB")
-	//	storageDB = stor
-	//default:
-	//	log.Fatal("Bad type store type in config file")
-	//}
-	//defer storageDB.Close(ctx)
 
 	s1 := rand.NewSource(time.Now().UnixNano())
-	r1 := rand.New(s1)
+	r1 := rand.New(s1) //nolint:gosec
 
 	chanWork := make(chan string, 5)
 	wg := sync.WaitGroup{}
 	wg.Add(5)
 	for i := 0; i < 5; i++ {
-		go func(chwork chan string) {
+		go func() {
 			defer wg.Done()
 			for {
 				str, ok := <-chanWork
@@ -121,9 +87,8 @@ func main() {
 				if err != nil {
 					fmt.Println(err)
 				}
-				//fmt.Println(toJSON(user))
 			}
-		}(chanWork)
+		}()
 	}
 
 	t1 := time.Now()
@@ -139,7 +104,7 @@ func main() {
 	close(chanWork)
 	wg.Wait()
 	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 
 }

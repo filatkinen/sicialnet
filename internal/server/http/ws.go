@@ -1,13 +1,14 @@
 package internalhttp
 
 import (
-	"github.com/filatkinen/socialnet/internal/rabbit"
-	"github.com/filatkinen/socialnet/internal/rabbit/consumer"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"sync"
 	"time"
+
+	"github.com/filatkinen/socialnet/internal/rabbit"
+	"github.com/filatkinen/socialnet/internal/rabbit/consumer"
+	"github.com/gorilla/websocket"
 )
 
 type Ws struct {
@@ -20,7 +21,7 @@ type Ws struct {
 	rabbitConf   rabbit.Config
 }
 
-func newWS(log *log.Logger, rabbitConf rabbit.Config) (*Ws, error) {
+func newWS(log *log.Logger, rabbitConf rabbit.Config) (*Ws, error) { //nolint
 
 	return &Ws{
 		clientsMutex: sync.Mutex{},
@@ -73,14 +74,17 @@ func (ws *Ws) Close() error {
 	defer ticker.Stop()
 
 	count := 0
-	select {
-	case <-ticker.C:
-		ws.log.Println("Waiting for close active connections...")
-	default:
-		if len(ws.clients) == 0 || count > 5 {
-			break
+	var goon = true
+	for goon {
+		select {
+		case <-ticker.C:
+			ws.log.Println("Waiting for close active connections...")
+			count++
+		default:
+			if len(ws.clients) == 0 || count > 5 {
+				goon = false
+			}
 		}
-		count++
 	}
 	for k := range ws.clients {
 		ws.clients[k].Close()
@@ -89,6 +93,7 @@ func (ws *Ws) Close() error {
 		ws.rabbitconn[k].Close()
 		ws.rabbitconn[k].Stop()
 	}
+
 	return nil
 }
 

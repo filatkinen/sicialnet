@@ -3,12 +3,13 @@ package socialapp
 import (
 	"context"
 	"errors"
+	"log"
+	"time"
+
 	"github.com/filatkinen/socialnet/internal/common"
 	"github.com/filatkinen/socialnet/internal/config/server"
 	"github.com/filatkinen/socialnet/internal/storage"
 	pgsqlstorage "github.com/filatkinen/socialnet/internal/storage/pgsql"
-	"log"
-	"time"
 )
 
 type App struct {
@@ -46,20 +47,8 @@ func newStorage(config server.Config) (storage.Storage, error) {
 	defer cancel()
 
 	switch config.StoreType {
-	//case "memory":
-	//	return memorystorage.New(), nil
-	//case "mysql":
-	//	stor, err := mysqlstorage.New(config)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	err = stor.Connect(ctx)
-	//	if err != nil {
-	//		return nil, err
-	//	}
-	//	return stor, err
 	case "pgsql":
-		stor, err := pgsqlstorage.New(config)
+		stor, err := pgsqlstorage.New(config.DB)
 		if err != nil {
 			return nil, err
 		}
@@ -86,7 +75,7 @@ func (a *App) Close(ctx context.Context) error {
 	return nil
 }
 
-// SetToken generate token for user and save to the DB as hash
+// SetToken generate token for user and save to the DB as hash.
 func (a *App) SetToken(ctx context.Context, userID string) (string, error) {
 	tokenString, err := common.TokenGenerator()
 	if err != nil {
@@ -104,7 +93,7 @@ func (a *App) SetToken(ctx context.Context, userID string) (string, error) {
 	return tokenString, nil
 }
 
-// CheckToken check if token is valid and return userID
+// CheckToken check if token is valid and return userID.
 func (a *App) CheckToken(ctx context.Context, tokenString string) (string, error) {
 	token, err := a.Storage.TokenGet(ctx, common.Hasher(tokenString))
 	if err != nil {
@@ -117,11 +106,10 @@ func (a *App) CheckToken(ctx context.Context, tokenString string) (string, error
 		err = a.Storage.TokenDelete(ctx, common.Hasher(tokenString))
 		return "", errors.Join(err, ErrorTokenExpire)
 	}
-
 	return token.UserID, nil
 }
 
-// UserLogin check user credentials and gives token
+// UserLogin check user credentials and gives token.
 func (a *App) UserLogin(ctx context.Context, userID string, pass string) (string, error) {
 	u, err := a.Storage.UserCredentialGet(ctx, userID)
 	if err != nil {
@@ -141,7 +129,7 @@ func (a *App) UserLogin(ctx context.Context, userID string, pass string) (string
 	return tokenString, nil
 }
 
-// UserAdd add user and returns user_id
+// UserAdd add user and returns user_id.
 func (a *App) UserAdd(ctx context.Context, user *storage.User, pass string) (string, error) {
 	id, err := storage.UUID()
 	if err != nil {

@@ -5,10 +5,11 @@
 bindings:
   port: 8800
   address: 0.0.0.0 # 0.0.0.0 - all interfaces / ip address for binding
+  grpcport: 50051
 
 httplog:
   #if logfile is empty or destination is not accessible service does logging into the current directory
-  logfile: /tmp/socialnet-http-01.log
+ logfile: #/tmp/socialnet-http-01.log
 
 
 #if storage type=memory following line are omitted

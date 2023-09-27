@@ -4,12 +4,14 @@ package storage_test
 
 import (
 	"context"
-	"github.com/filatkinen/socialnet/internal/config/server"
-	"github.com/filatkinen/socialnet/internal/storage"
-	pgsqlstorage "github.com/filatkinen/socialnet/internal/storage/pgsql"
 	"log"
 	"os"
 	"testing"
+
+	"github.com/filatkinen/socialnet/internal/config/server"
+	"github.com/filatkinen/socialnet/internal/storage"
+	pgsqlstorage "github.com/filatkinen/socialnet/internal/storage/pgsql"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPgsqlStorage(t *testing.T) {
@@ -24,7 +26,7 @@ func TestPgsqlStorage(t *testing.T) {
 		log.Fatalf("error reading config file %v", err)
 	}
 	conf.DB.DBPort = "5432"
-	pgsqlStorage, err := pgsqlstorage.New(conf)
+	pgsqlStorage, err := pgsqlstorage.New(conf.DB)
 	if err != nil {
 		log.Fatalf("%v", err)
 	}
@@ -34,7 +36,7 @@ func TestPgsqlStorage(t *testing.T) {
 
 	err = pgsqlStorage.Connect(ctx)
 	if err != nil {
-		log.Fatalf("%v", err)
+		require.NoError(t, err)
 	}
 	defer pgsqlStorage.Close(ctx)
 

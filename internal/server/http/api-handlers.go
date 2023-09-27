@@ -154,7 +154,7 @@ func (s *Server) UserSearchGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var users []*User
+	users := make([]*User, 0, len(usersGet))
 	for i := range usersGet {
 		var user User
 		user.Biography = usersGet[i].Biography
@@ -201,7 +201,7 @@ func (s *Server) PostFeedGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var posts []*Post
+	posts := make([]*Post, 0, len(postsGet))
 	for i := range postsGet {
 		var post Post
 		post.Id = postsGet[i].PostId
@@ -250,17 +250,6 @@ func (s *Server) PostCreatePost(w http.ResponseWriter, r *http.Request) {
 		})
 
 	}()
-
-	err = s.PutPostMessageToRabbit(id, text, userID)
-	if err != nil {
-		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
-			Message:   err.Error(),
-			RequestId: rID,
-			Code:      500,
-		})
-		return
-	}
-
 	s.writeHTTPJsonOK(w, PostCreateResponse{Id: id})
 }
 
@@ -286,101 +275,13 @@ func (s *Server) FriendSetUserIdPut(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) DialogUserIdListGet(w http.ResponseWriter, r *http.Request) {
-	rID := r.Context().Value(RequestID).(string)
-	this_userID := r.Context().Value(ContextUserKey).(string)
-
-	vars := mux.Vars(r)
-	userid, ok := vars["user_id"]
-	if !ok {
-		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
-			Message:   "user id was not set in URL",
-			RequestId: rID,
-			Code:      500,
-		})
-		return
-	}
-	messages, err := s.app.UserDialogListdMessages(r.Context(), this_userID, userid)
-	if err != nil {
-		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
-			Message:   err.Error(),
-			RequestId: rID,
-			Code:      500,
-		})
-		return
-	}
-	s.writeHTTPJsonOKIdent(w, messages)
-}
-
-func (s *Server) DialogUserIdSendPost(w http.ResponseWriter, r *http.Request) {
-	rID := r.Context().Value(RequestID).(string)
-	this_userID := r.Context().Value(ContextUserKey).(string)
-
-	vars := mux.Vars(r)
-	userid, ok := vars["user_id"]
-	if !ok {
-		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
-			Message:   "user id was not set in URL",
-			RequestId: rID,
-			Code:      500,
-		})
-		return
-	}
-
-	data := make(map[string]interface{})
-	err := json.NewDecoder(r.Body).Decode(&data)
-	if err != nil {
-		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
-			Message:   err.Error(),
-			RequestId: rID,
-			Code:      500,
-		})
-		return
-	}
-	text, ok := data["text"].(string)
-	if !ok {
-		s.ClientError(w, http.StatusBadRequest, "")
-		return
-	}
-	err = s.app.UserDialogSendMessage(r.Context(), this_userID, userid, text)
-	if err != nil {
-		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
-			Message:   err.Error(),
-			RequestId: rID,
-			Code:      500,
-		})
-		return
-	}
-	w.Header().Set("Content-Type", "text/plain; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-}
-
 func (s *Server) PostUpdateCache(w http.ResponseWriter, r *http.Request) {
 	s.cache.UpdatePostAll()
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusOK)
 }
 
-func (s *Server) ShardUpdate(w http.ResponseWriter, r *http.Request) {
-	err := s.app.Storage.GetShards(r.Context())
-	if err != nil {
-		s.ServerError(w, http.StatusInternalServerError, &InlineResponse500{
-			Message:   err.Error(),
-			RequestId: "",
-			Code:      500,
-		})
-		return
-	}
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-}
-
 func (s *Server) PostFeedPosted(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(ContextUserKey).(string)
-	err := s.ws.NewConnection(w, r, userID)
-	if err != nil {
-		s.log.Println("Error creating ws comnection " + err.Error())
-	}
 }
 
 func (s *Server) Index(w http.ResponseWriter, r *http.Request) {

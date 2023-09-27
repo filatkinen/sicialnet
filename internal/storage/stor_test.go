@@ -4,11 +4,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"testing"
+	"time"
+
 	"github.com/filatkinen/socialnet/internal/common"
 	"github.com/filatkinen/socialnet/internal/storage"
 	"github.com/stretchr/testify/require"
-	"testing"
-	"time"
 )
 
 func newStringPointer(s string) *string {
@@ -27,7 +28,7 @@ func toJSON(value any) string {
 	return string(data)
 }
 
-const delete bool = false
+const deleteSet = false
 
 var (
 	UUID1, _ = storage.UUID()
@@ -57,9 +58,6 @@ var (
 )
 
 func runTestStorage(t *testing.T, ctx context.Context, store storage.Storage) {
-
-	// users
-	// insert
 	for i := range users {
 		err := store.UserAdd(ctx, users[i])
 		require.NoError(t, err)
@@ -74,7 +72,7 @@ func runTestStorage(t *testing.T, ctx context.Context, store storage.Storage) {
 	require.NoError(t, err)
 	require.Equal(t, users[0], user)
 
-	// delete
+	// deleteSet
 	err = store.UserDelete(ctx, users[0].Id)
 	require.NoError(t, err)
 	_, err = store.UserGet(ctx, users[0].Id)
@@ -110,12 +108,12 @@ func runTestStorage(t *testing.T, ctx context.Context, store storage.Storage) {
 	require.Equal(t, t2, tget2)
 	require.Equal(t, common.Hasher(token2), tget2.Hash)
 
-	// delete
+	// deleteSet
 	err = store.TokenDelete(ctx, t1.Hash)
 	require.NoError(t, err)
 	_, err = store.TokenGet(ctx, t1.Hash)
 	require.Equal(t, storage.ErrRecordNotFound, err)
-	// delete all
+	// deleteSet all
 	err = store.TokenDeleteAllUser(ctx, user.Id)
 	require.NoError(t, err)
 	err = store.TokenDeleteAllUser(ctx, user.Id)
@@ -139,21 +137,20 @@ func runTestStorage(t *testing.T, ctx context.Context, store storage.Storage) {
 		require.True(t, common.CheckPasswordHash(pass, credGet.PassBcrypt))
 	}
 
-	//delete pass
+	// deleteSet pass
 	err = store.UserCredentialDelete(ctx, user.Id)
 	require.NoError(t, err)
 	_, err = store.UserCredentialGet(ctx, user.Id)
 	require.Equal(t, storage.ErrRecordNotFound, err)
 
-	//search
-	users, err := store.UserSearch(ctx, "Mar", "Fil")
+	// search
+	users, _ := store.UserSearch(ctx, "Mar", "Fil")
 	for i := range users {
 		fmt.Println(toJSON(users[i]))
 	}
 
-	if delete {
+	if deleteSet {
 		err = store.UserDelete(ctx, user.Id)
 		require.NoError(t, err)
 	}
-
 }

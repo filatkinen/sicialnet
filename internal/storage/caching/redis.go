@@ -4,15 +4,16 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/filatkinen/socialnet/internal/config/server"
-	"github.com/filatkinen/socialnet/internal/storage"
-	"github.com/go-redis/redis"
-	_ "github.com/lib/pq" // import pq
 	"log"
 	"net"
 	"strings"
 	"sync/atomic"
 	"time"
+
+	"github.com/filatkinen/socialnet/internal/config/server"
+	"github.com/filatkinen/socialnet/internal/storage"
+	"github.com/go-redis/redis"
+	_ "github.com/lib/pq" // import pq
 )
 
 const maxPosts = 1000
@@ -70,7 +71,8 @@ func newDB(config server.Config, log *log.Logger) (*sql.DB, error) {
 		return nil, err
 	}
 
-	ctx, _ := context.WithTimeout(context.Background(), 3*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
 	if err = db.PingContext(ctx); err != nil {
 		log.Printf("%s", "Error ping postgres database(redis cache)")
 		db.Close()
@@ -186,6 +188,10 @@ func (r *RedisCache) AddPost(postRecord *storage.Post) error {
 		r.cache.RPush(friend_id, str.String())
 		r.cache.LTrim(friend_id, 0, maxPosts-1)
 	}
+	if err = rows.Err(); err != nil {
+		return err
+	}
+
 	if err != nil {
 		return err
 	}
@@ -195,7 +201,7 @@ func (r *RedisCache) AddPost(postRecord *storage.Post) error {
 func (r *RedisCache) UserGetFriendsPosts(userID string, offset int, limit int) []*storage.Post {
 	listPosts := r.cache.LRange(userID, int64(offset), int64(limit)-1).Val()
 	var post storage.Post
-	var posts []*storage.Post
+	posts := make([]*storage.Post, 0, len(listPosts))
 	for i := range listPosts {
 		post.PostId = listPosts[i][0:36]
 		post.UserId = listPosts[i][36:72]

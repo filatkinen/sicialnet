@@ -2,9 +2,9 @@ package consumer
 
 import (
 	"errors"
-	"github.com/filatkinen/socialnet/internal/rabbit"
 	"log"
 
+	"github.com/filatkinen/socialnet/internal/rabbit"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
 

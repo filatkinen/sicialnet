@@ -88,7 +88,6 @@ func testHTTPAPI(t *testing.T, servicePort string) { //nolint
 		token, err := testUserLogin(t, client, &lb, fullURL)
 		require.NoError(t, err)
 		require.NotEqual(t, token, "")
-		//fmt.Println(token)
 		usersTokens = append(usersTokens, token) //nolint
 	}
 	// get users
@@ -97,7 +96,6 @@ func testHTTPAPI(t *testing.T, servicePort string) { //nolint
 		userGet, err := testUserGet(t, client, fullURL)
 		require.NoError(t, err)
 		require.Equal(t, users[i].FirstName, userGet.FirstName)
-		//fmt.Println(toJSON(userGet))
 	}
 }
 

@@ -5,9 +5,7 @@ import (
 	"errors"
 )
 
-var (
-	ErrRecordNotFound = errors.New("record not found")
-)
+var ErrRecordNotFound = errors.New("record not found")
 
 type Storage interface {
 	UserAdd(ctx context.Context, user *User) error
@@ -32,8 +30,6 @@ type Storage interface {
 	UserCredentialSet(ctx context.Context, cred *UserCredential) error
 	UserCredentialDelete(ctx context.Context, userID string) error
 	UserCredentialGet(ctx context.Context, userID string) (*UserCredential, error)
-
-	GetShards(ctx context.Context) (err error)
 
 	Close(ctx context.Context) error
 }

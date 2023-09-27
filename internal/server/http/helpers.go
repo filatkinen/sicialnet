@@ -1,7 +1,6 @@
 package internalhttp
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -77,23 +76,5 @@ func (s *Server) writeHTTPTextOK(w http.ResponseWriter, value string) {
 }
 
 func (s *Server) PutPostMessageToRabbit(postID string, postText string, userID string) error {
-	friends, err := s.app.UserGetFriends(context.Background(), userID)
-	if err != nil {
-		return err
-	}
-	post := Post{
-		Id:           postID,
-		Text:         postText,
-		AuthorUserId: userID,
-	}
-	b, err := json.Marshal(post)
-	if err != nil {
-		return err
-	}
-	go func() {
-		for _, val := range friends {
-			s.rabbit.SendMessages(b, val)
-		}
-	}()
 	return nil
 }

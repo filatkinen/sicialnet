@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+//import "google/protobuf/wrappers.proto";
+//import "google/protobuf/timestamp.proto";
+
+package dialog;
+
+option go_package = "/dialog";
+
+service Dialog {
+  rpc getToken(Cred) returns (Token);
+  rpc checkToken(Token) returns (UserID);
+}
+
+message Cred {
+  string userID = 1;
+  string password = 2;
+  string logging =3;
+}
+
+message Token {
+  string token = 1;
+}
+
+message UserID{
+  string userID =1;
+}
+
+

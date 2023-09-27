@@ -29,22 +29,6 @@ func (s *Server) NewRouter() http.Handler {
 		},
 
 		Route{
-			"DialogUserIdListGet",
-			strings.ToUpper("Get"),
-			"/dialog/{user_id}/list",
-			s.DialogUserIdListGet,
-			true,
-		},
-
-		Route{
-			"DialogUserIdSendPost",
-			strings.ToUpper("Post"),
-			"/dialog/{user_id}/send",
-			s.DialogUserIdSendPost,
-			true,
-		},
-
-		Route{
 			"FriendDeleteUserIdPut",
 			strings.ToUpper("Put"),
 			"/friend/delete/{user_id}",
@@ -136,13 +120,6 @@ func (s *Server) NewRouter() http.Handler {
 			strings.ToUpper("Get"),
 			"/postsupdate",
 			s.PostUpdateCache,
-			false,
-		},
-		Route{
-			"ShardUpdate",
-			strings.ToUpper("Get"),
-			"/shardupdate",
-			s.ShardUpdate,
 			false,
 		},
 		Route{

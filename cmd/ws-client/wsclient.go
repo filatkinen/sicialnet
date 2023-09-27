@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
-	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/gorilla/websocket"
 )
 
 func main() {
@@ -24,6 +25,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer conn.Close()
 
 	signalCh := make(chan os.Signal, 1)
 	signal.Notify(signalCh, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP)
@@ -50,5 +52,4 @@ func main() {
 			conn.Close()
 		}
 	}
-
 }

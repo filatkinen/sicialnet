@@ -3,9 +3,10 @@ package producer
 import (
 	"context"
 	"errors"
+	"log"
+
 	"github.com/filatkinen/socialnet/internal/rabbit"
 	amqp "github.com/rabbitmq/amqp091-go"
-	"log"
 )
 
 type Producer struct {
@@ -59,20 +60,6 @@ func NewProducer(config rabbit.Config, log *log.Logger) (*Producer, error) {
 	return &p, nil
 }
 
-//func (p *Producer) Start(f func() [][]byte, clientID string) {
-//	p.log.Println("Starting Scheduller")
-//	timer := time.NewTicker(p.config.CheckInterval)
-//	defer timer.Stop()
-//	for {
-//		select {
-//		case <-p.chExit:
-//			return
-//		case <-timer.C:
-//			p.SendMessages(f())
-//		}
-//	}
-//}
-
 func (p *Producer) Stop() {
 	p.log.Println("Stopping sender posts")
 	p.chExit <- struct{}{}
@@ -106,12 +93,5 @@ func (p *Producer) SendMessages(message []byte, clientID string) {
 	if err != nil {
 		p.log.Println("Error publishing: " + err.Error())
 		return
-		//var b []byte
-		//if len(messages[i]) < 60 {
-		//	b = messages[i][:len(messages[i])]
-		//} else {
-		//	b = messages[i][:60]
-		//}
-		//p.log.Printf("Sending to the rabbit post. First 60 symbols of message:%s:", string(b))
 	}
 }

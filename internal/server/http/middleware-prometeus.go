@@ -19,7 +19,6 @@ type promData struct {
 }
 
 func NewPromData() *promData {
-
 	pr := promData{
 		totalRequests: prometheus.NewCounterVec(
 			prometheus.CounterOpts{
@@ -57,7 +56,6 @@ func (rw *promResponseWriter) WriteHeader(code int) {
 
 func (s *Server) prometheusMiddleware(next http.Handler, routePath string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		timer := prometheus.NewTimer(s.promData.httpDuration.WithLabelValues(routePath))
 		rw := NewPromResponseWriter(w)
 		next.ServeHTTP(rw, r)

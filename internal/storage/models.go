@@ -20,8 +20,8 @@ type UserCredential struct {
 
 type User struct {
 	Id            string     `json:"id,omitempty"`
-	FirstName     string     `json:"first_name,omitempty"`
-	SecondName    *string    `json:"second_name,omitempty"`
+	FirstName     string     `json:"firstName,omitempty"`
+	SecondName    *string    `json:"secondName,omitempty"`
 	BirthDate     *time.Time `json:"birthdate,omitempty"`
 	Sex           *string    `json:"sex,omitempty"`
 	Biography     *string    `json:"biography,omitempty"`
@@ -30,10 +30,10 @@ type User struct {
 }
 
 type Post struct {
-	PostId   string    `json:"post_id,omitempty"`
-	UserId   string    `json:"friend_id,omitempty"`
+	PostId   string    `json:"postId,omitempty"`
+	UserId   string    `json:"friendId,omitempty"`
 	PostText string    `json:"post,omitempty"`
-	PostDate time.Time `json:"post_date,omitempty"`
+	PostDate time.Time `json:"postDate,omitempty"`
 }
 
 type DialogMessage struct {

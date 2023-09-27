@@ -3,16 +3,16 @@ package main_test
 import (
 	"bufio"
 	"context"
-	"encoding/json"
-	"github.com/filatkinen/socialnet/internal/config/server"
-	socialapp "github.com/filatkinen/socialnet/internal/server/app"
-	"github.com/filatkinen/socialnet/internal/storage"
 	"log"
 	"math/rand"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/filatkinen/socialnet/internal/config/server"
+	socialapp "github.com/filatkinen/socialnet/internal/server/app"
+	"github.com/filatkinen/socialnet/internal/storage"
 )
 
 func newStringPointer(s string) *string {
@@ -21,14 +21,6 @@ func newStringPointer(s string) *string {
 
 func newTimePointer(s time.Time) *time.Time {
 	return &s
-}
-
-func toJSON(value any) string {
-	data, err := json.Marshal(value)
-	if err != nil {
-		return ""
-	}
-	return string(data)
 }
 
 func getapp(configFile string, dataFile string) (*socialapp.App, []*storage.User, error) {
@@ -42,7 +34,8 @@ func getapp(configFile string, dataFile string) (*socialapp.App, []*storage.User
 
 	config, err := server.NewConfig(configFile)
 	if err != nil {
-		log.Fatalf("error reading config file %v", err)
+		log.Printf("error reading config file %v", err)
+		return nil, nil, nil
 	}
 
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime|log.LUTC)
@@ -51,7 +44,7 @@ func getapp(configFile string, dataFile string) (*socialapp.App, []*storage.User
 		return nil, nil, err
 	}
 	s1 := rand.NewSource(time.Now().UnixNano())
-	r1 := rand.New(s1)
+	r1 := rand.New(s1) //nolint:gosec
 
 	var users []*storage.User
 	scanner := bufio.NewScanner(file)

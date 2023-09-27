@@ -5,16 +5,19 @@ scrape_configs:
   - job_name: prometheus
     static_configs:
       - targets: ["localhost:9090"]
+
   - job_name: cadvisor
     static_configs:
       - targets: ["cadvisor:8080"]
-  - job_name: postgres-exporter01
 
+  - job_name: postgres-exporter01
     static_configs:
       - targets: ["postgres-exporter01:9187"]
+
   - job_name: postgres-exporter02
     static_configs:
       - targets: ["postgres-exporter02:9187"]
+
   - job_name: postgres-exporter03
     static_configs:
       - targets: ["postgres-exporter03:9187"]
