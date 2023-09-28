@@ -1,4 +1,5 @@
 version: '3'
+
 services:
   pgsql:
     build:
@@ -12,36 +13,12 @@ services:
     networks:
       - local
 
-  rabbitmq:
-    image: rabbitmq:3-management
-    hostname: socialnet_rabbit
-    container_name: socialnet_rabbit
-    healthcheck:
-      test: rabbitmq-diagnostics -q ping
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    #    restart: always
-    environment:
-      - RABBITMQ_DEFAULT_USER=rmuser
-      - RABBITMQ_DEFAULT_PASS=rmpass
-    #   ports:
-    #      - 15672:15672
-    #      - 5672:5672
-    expose:
-      - 5672
-    networks:
-      - local
-
-
-  goapp:
+  mainapp:
     build:
-      context: ./app
+      context: service
     container_name: socialnet_app
     depends_on:
       pgsql:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     restart: always
     tty: true
@@ -57,38 +34,29 @@ services:
       - SOCIALNET_DB_PORT=5432
       - SOCIALNET_DB_TYPE=pgsql
       - SOCIALNET_DB_ADDRESS=socialnet_pgsql
-      - SOCIALNET_REDIS_ADDRESS=socialnet_redis
-      - SOCIALNET_REDIS_PORT=6379
-      - RABBIT_USER=rmuser
-      - RABBIT_PASS=rmpass
 
-
-  wsclient:
+  dialogapp:
     build:
-      context: ./wsclient
-    container_name: socialnet_wsclient
+      context: dialog
+    container_name: socialnet_dialog
     depends_on:
       pgsql:
-        condition: service_healthy
-      rabbitmq:
         condition: service_healthy
     restart: always
     tty: true
     stdin_open: true
+    ports:
+      - "8801:8801"
     networks:
       - local
+    environment:
+      - DIALOG_DB_TYPE=pgsql
+      - DIALOG_DB_PORT=5432
+      - DIALOG_DB_ADDRESS=socialnet_pgsql
+      - DIALOG_DB=snet_dialog
+      - DIALOG_DB_PASS=socialnet
+      - DIALOG_DB_USER=socialnet
 
-
-
-  redis:
-    image: redis:latest
-    container_name: socialnet_redis
-    networks:
-      - local
-    expose:
-      - 6379
-    # ports:
-    # - 6379:6379
 
 networks:
   local:

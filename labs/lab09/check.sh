@@ -10,8 +10,13 @@ set -x
 #curl -X POST http://localhost:8801/login -H "Content-Type: application/json" -d '{"id":"902c7d85-ace2-319d-6852-4224b2866067","password":"password"}'
 #{"token":"OGJHGZ76N654Z33JYKW65CY3NU"}
 
-curl -i -X POST http://localhost:8801/dialog/902c7d85-ace2-319d-6852-4224b2866067/send  -H "Authorization: Bearer QFBPIXM7S4VQVPF2TKA5ZBPQII" -d '{"text":"message1 From Katya to Anna"}'
-curl -i -X POST http://localhost:8801/dialog/902c7d85-ace2-319d-6852-4224b2866067/send  -H "Authorization: Bearer QFBPIXM7S4VQVPF2TKA5ZBPQII" -d '{"text":"message2 From Katya to Anna"}'
 
+echo sucessful result by grpc
 curl -i -X POST http://localhost:8801/dialog/628ad2a9-1676-5aba-f27c-dd38363128b8/send  -H "Authorization: Bearer OGJHGZ76N654Z33JYKW65CY3NU" -d '{"text":"message1 From Anna to Katya"}'
-curl -i -X POST http://localhost:8801/dialog/628ad2a9-1676-5aba-f27c-dd38363128b8/send  -H "Authorization: Bearer OGJHGZ76N654Z33JYKW65CY3NU" -d '{"text":"message2 From Anna to Katya"}'
+
+echo bad auth header receiving by grpc
+curl -i -X POST http://localhost:8801/dialog/628ad2a9-1676-5aba-f27c-dd38363128b8/send  -H "Authorization: Bearer OGJHGZ76N654Z33JYKW65CY3N" -d '{"text":"message2 From Anna to Katya"}'
+
+
+echo result show us that request goes through  main service by grpc
+curl -X POST http://localhost:8801/login -H "Content-Type: application/json" -d '{"id":"02c7d85-ace2-319d-6852-4224b2866067","password":"password"}'

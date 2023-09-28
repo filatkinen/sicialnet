@@ -7,10 +7,10 @@ bindings:
   address: 0.0.0.0 # 0.0.0.0 - all interfaces / ip address for binding
   grpcport: 50051
 
-httplog:
-  #if logfile is empty or destination is not accessible service does logging into the current directory
- logfile: #/tmp/socialnet-http-01.log
-
+#httplog:
+#  #if logfile is empty or destination is not accessible service does logging into the current directory
+# logfile: #/tmp/socialnet-http-01.log
+#
 
 #if storage type=memory following line are omitted
 
@@ -23,19 +23,19 @@ env:
   port: SOCIALNET_DB_PORT
   type: SOCIALNET_DB_TYPE
 
-  redisport: SOCIALNET_REDIS_PORT
-  redisaddress: SOCIALNET_REDIS_ADDRESS
-
-  rabbituser: RABBIT_USER
-  rabbitpass: RABBIT_PASS
-
-
-rabbit:
-  port: 5672
-  address: localhost
-#  queue: queue-notice
-  exchange: post-exchange
-#  topic: notice
+#  redisport: SOCIALNET_REDIS_PORT
+#  redisaddress: SOCIALNET_REDIS_ADDRESS
+#
+#  rabbituser: RABBIT_USER
+#  rabbitpass: RABBIT_PASS
+#
+#
+#rabbit:
+#  port: 5672
+#  address: localhost
+##  queue: queue-notice
+#  exchange: post-exchange
+##  topic: notice
 
 db:
   maxopenconns: 5 #10 default
