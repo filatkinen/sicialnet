@@ -12,7 +12,7 @@ type httplog struct {
 }
 
 func newHTTPLogger(fileNameLogHTTP string, logServer *log.Logger) *httplog {
-	httplogger := log.New(os.Stdout, "", 0)
+	httplogger := log.New(os.Stdout, "", log.Ldate|log.Ltime|log.LUTC)
 	fileLog := os.Stdout
 	f, err := os.OpenFile(fileNameLogHTTP, os.O_RDWR|os.O_CREATE|os.O_APPEND, 0o644)
 	if err == nil {

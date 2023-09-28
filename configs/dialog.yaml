@@ -8,7 +8,7 @@ bindings:
 
 httplog:
   #if logfile is empty or destination is not accessible service does logging into the current directory
-  logfile: /tmp/socialnet-http-01.log
+  logfile: #/tmp/socialnet-http-01.log
 
 
 #if storage type=memory following line are omitted

@@ -63,7 +63,7 @@ func NewServer(config server.Config, log *log.Logger) (*Server, error) {
 
 func (s *Server) startGRPC() error {
 	s.connLock.Lock()
-	s.conn = grpc.NewServer()
+	s.conn = grpc.NewServer(grpc.UnaryInterceptor(s.eventUnaryServerInterceptor))
 	s.connLock.Unlock()
 	lis, err := net.Listen("tcp", net.JoinHostPort(s.config.ServerAddress, s.config.ServerGRPCPort))
 	if err != nil {
