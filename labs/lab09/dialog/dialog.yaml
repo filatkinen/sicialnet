@@ -30,5 +30,5 @@ db:
   maxidletime: 5m # 15m default value if omitted. f.e: 1h5m10s, 10m...
 
 servicegrpc:
-  address: localhost
+  address: socialnet_app
   port: 50051
