@@ -1,0 +1,39 @@
+#storage:
+#  #type pgsql / mysql
+#  type: pgsql
+
+bindings:
+  port: 8801
+  address: 0.0.0.0 # 0.0.0.0 - all interfaces / ip address for binding
+
+httplog:
+  #if logfile is empty or destination is not accessible service does logging into the current directory
+  logfile: #/tmp/socialnet-http-01.log
+
+
+#if storage type=memory following line are omitted
+
+#due security reasons, service gets username and password for database from env settings
+env:
+  dbuser: DIALOG_DB_USER
+  dbpass: DIALOG_DB_PASS
+  db: DIALOG_DB
+  address: DIALOG_DB_ADDRESS
+  port: DIALOG_DB_PORT
+  type: DIALOG_DB_TYPE
+
+cas:
+  dbuser: CAS_USER
+  dbpass: CAS_PASS
+  db: CAS_DB
+  address: CAS_ADDRESS
+
+
+db:
+  maxopenconns: 5 #10 default
+  maxidleconns: 5 #10 default
+  maxidletime: 5m # 15m default value if omitted. f.e: 1h5m10s, 10m...
+
+servicegrpc:
+  address: localhost
+  port: 50051

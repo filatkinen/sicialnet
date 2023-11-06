@@ -3,7 +3,7 @@
 #  type: pgsql
 
 bindings:
-  port: 8801
+  port: 8802
   address: 0.0.0.0 # 0.0.0.0 - all interfaces / ip address for binding
 
 httplog:

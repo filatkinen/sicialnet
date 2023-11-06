@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  cassandra_alone:
+    image: docker.io/bitnami/cassandra:4.1
+    container_name: cassandra_alone
+    hostname: cassandra_alone
+    ports:
+      - 7000:7000
+      - 9042:9042
+    volumes:
+      - cassandra_alone_data_n:/bitnami
+      - ./casssandra:/docker-entrypoint-initdb.d
+    environment:
+      - CASSANDRA_SEEDS=cassandra_alone
+      # - CASSANDRA_CLUSTER_NAME=cassandra-cluster
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_PASSWORD=cassandra
+      # By default, Cassandra autodetects the available host memory and takes as much as it can.
+      # Therefore, memory options are mandatory if multiple Cassandras are launched in the same node.
+      - MAX_HEAP_SIZE=2G
+      - HEAP_NEWSIZE=200M
+    networks:
+      - local
+
+volumes:
+  cassandra_alone_data_n:
+    driver: local
+
+networks:
+  local:

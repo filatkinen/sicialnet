@@ -1,0 +1,133 @@
+hey -n 10000 -c 100 -m POST -H "Authorization: Bearer OGJHGZ76N654Z33JYKW65CY3NU" -d '{"text":"message1 From Anna to Katya"}' http://localhost:8802/dialog/628ad2a9-1676-5aba-f27c-dd38363128b8/send
+
+Summary:
+  Total:	1.7010 secs
+  Slowest:	0.2377 secs
+  Fastest:	0.0008 secs
+  Average:	0.0154 secs
+  Requests/sec:	5878.9418
+  
+
+Response time histogram:
+  0.001 [1]	|
+  0.025 [8504]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  0.048 [808]	|■■■■
+  0.072 [304]	|■
+  0.096 [113]	|■
+  0.119 [72]	|
+  0.143 [41]	|
+  0.167 [13]	|
+  0.190 [32]	|
+  0.214 [98]	|
+  0.238 [14]	|
+
+
+Latency distribution:
+  10% in 0.0018 secs
+  25% in 0.0027 secs
+  50% in 0.0057 secs
+  75% in 0.0139 secs
+  90% in 0.0352 secs
+  95% in 0.0620 secs
+  99% in 0.2055 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0000 secs, 0.0008 secs, 0.2377 secs
+  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0031 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0028 secs
+  resp wait:	0.0153 secs, 0.0008 secs, 0.2376 secs
+  resp read:	0.0000 secs, 0.0000 secs, 0.0019 secs
+
+Status code distribution:
+  [200]	10000 responses
+
+
+hey -n 100000 -c 1000 -m POST -H "Authorization: Bearer OGJHGZ76N654Z33JYKW65CY3NU" -d '{"text":"message1 From Anna to Katya"}' http://localhost:8802/dialog/628ad2a9-1676-5aba-f27c-dd38363128b8/send
+
+Summary:
+  Total:	13.5659 secs
+  Slowest:	7.6890 secs
+  Fastest:	0.0009 secs
+  Average:	0.1177 secs
+  Requests/sec:	7371.4136
+  
+
+Response time histogram:
+  0.001 [1]	|
+  0.770 [97790]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  1.538 [1318]	|■
+  2.307 [448]	|
+  3.076 [222]	|
+  3.845 [124]	|
+  4.614 [48]	|
+  5.383 [36]	|
+  6.151 [5]	|
+  6.920 [3]	|
+  7.689 [5]	|
+
+
+Latency distribution:
+  10% in 0.0043 secs
+  25% in 0.0118 secs
+  50% in 0.0376 secs
+  75% in 0.1101 secs
+  90% in 0.2609 secs
+  95% in 0.4144 secs
+  99% in 1.4044 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0005 secs, 0.0009 secs, 7.6890 secs
+  DNS-lookup:	0.0007 secs, 0.0000 secs, 0.1826 secs
+  req write:	0.0001 secs, 0.0000 secs, 0.0731 secs
+  resp wait:	0.1167 secs, 0.0008 secs, 7.6889 secs
+  resp read:	0.0000 secs, 0.0000 secs, 0.0705 secs
+
+Status code distribution:
+  [200]	100000 responses
+
+
+hey -n 1000000 -c 10000 -m POST -H "Authorization: Bearer OGJHGZ76N654Z33JYKW65CY3NU" -d '{"text":"message1 From Anna to Katya"}' http://localhost:8802/dialog/628ad2a9-1676-5aba-f27c-dd38363128b8/send
+
+Summary:
+  Total:	568.5912 secs
+  Slowest:	20.0005 secs
+  Fastest:	0.0011 secs
+  Average:	3.9582 secs
+  Requests/sec:	1758.7329
+  
+
+Response time histogram:
+  0.001 [1]	|
+  2.001 [442632]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  4.001 [165180]	|■■■■■■■■■■■■■■■
+  6.001 [95016]	|■■■■■■■■■
+  8.001 [62914]	|■■■■■■
+  10.001 [45241]	|■■■■
+  12.001 [33241]	|■■■
+  14.001 [25295]	|■■
+  16.001 [19920]	|■■
+  18.001 [15790]	|■
+  20.000 [13372]	|■
+
+
+Latency distribution:
+  10% in 0.2049 secs
+  25% in 0.6851 secs
+  50% in 2.1520 secs
+  75% in 5.6530 secs
+  90% in 10.8679 secs
+  95% in 14.2803 secs
+  99% in 18.6004 secs
+
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0019 secs, 0.0011 secs, 20.0005 secs
+  DNS-lookup:	0.0015 secs, 0.0000 secs, 0.6104 secs
+  req write:	0.0002 secs, 0.0000 secs, 0.4013 secs
+  resp wait:	3.9549 secs, 0.0011 secs, 20.0004 secs
+  resp read:	0.0001 secs, 0.0000 secs, 0.3928 secs
+
+Status code distribution:
+  [200]	918602 responses
+
+Error distribution:
+  [81398]	Post "http://localhost:8802/dialog/628ad2a9-1676-5aba-f27c-dd38363128b8/send": context deadline exceeded (Client.Timeout exceeded while awaiting headers)

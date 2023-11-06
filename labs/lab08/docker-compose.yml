@@ -1,0 +1,122 @@
+version: '3'
+
+services:
+  pgsql:
+    build:
+      context: ./pgsql
+    container_name: socialnet_pgsql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - local
+
+  mainapp:
+    build:
+      context: service
+    container_name: socialnet_app
+    depends_on:
+      pgsql:
+        condition: service_healthy
+    restart: always
+    tty: true
+    stdin_open: true
+    ports:
+      - "8800:8800"
+    networks:
+      - local
+    environment:
+      - SOCIALNET_DB=snet
+      - SOCIALNET_DB_PASS=socialnet
+      - SOCIALNET_DB_USER=socialnet
+      - SOCIALNET_DB_PORT=5432
+      - SOCIALNET_DB_TYPE=pgsql
+      - SOCIALNET_DB_ADDRESS=socialnet_pgsql
+
+  dialogapp:
+    build:
+      context: dialog
+    container_name: socialnet_dialog
+    depends_on:
+      pgsql:
+        condition: service_healthy
+    restart: always
+    tty: true
+    stdin_open: true
+    ports:
+      - "8802:8802"
+    networks:
+      - local
+    environment:
+      - DIALOG_DB_TYPE=pgsql
+      - DIALOG_DB_PORT=5432
+      - DIALOG_DB_ADDRESS=socialnet_pgsql
+      - DIALOG_DB=snet_dialog
+      - DIALOG_DB_PASS=socialnet
+      - DIALOG_DB_USER=socialnet
+
+  dialogappcas:
+    build:
+      context: dialog
+    container_name: socialnet_dialog
+    depends_on:
+      pgsql:
+        condition: service_healthy
+      cassandra_alone:
+        condition: service_healthy
+    restart: always
+    tty: true
+    stdin_open: true
+    ports:
+      - "8801:8801"
+    networks:
+      - local
+    environment:
+      - DIALOG_DB_TYPE=pgsql
+      - DIALOG_DB_PORT=5432
+      - DIALOG_DB_ADDRESS=socialnet_pgsql
+      - DIALOG_DB=snet_dialog
+      - DIALOG_DB_PASS=socialnet
+      - DIALOG_DB_USER=socialnet
+      - CAS_USER=cassandra
+      - CAS_PASS=cassandra
+      - CAS_DB=dialog
+      - CAS_ADDRESS=cassandra_alone:9042
+
+
+  cassandra_alone:
+    image: docker.io/bitnami/cassandra:4.1
+    container_name: cassandra_alone
+    hostname: cassandra_alone
+    healthcheck:
+      test: nodetool status | grep -e 'UN.*'
+      interval: 5s
+      timeout: 5s
+      retries: 300
+
+    ports:
+      - 7000:7000
+      - 9042:9042
+    volumes:
+      - cassandra_alone_data_n:/bitnami
+      - ./casssandra:/docker-entrypoint-initdb.d
+    environment:
+      - CASSANDRA_SEEDS=cassandra_alone
+      # - CASSANDRA_CLUSTER_NAME=cassandra-cluster
+      - CASSANDRA_PASSWORD_SEEDER=yes
+      - CASSANDRA_PASSWORD=cassandra
+      # By default, Cassandra autodetects the available host memory and takes as much as it can.
+      # Therefore, memory options are mandatory if multiple Cassandras are launched in the same node.
+      - MAX_HEAP_SIZE=2G
+      - HEAP_NEWSIZE=200M
+    networks:
+      - local
+
+volumes:
+  cassandra_alone_data_n:
+    driver: local
+
+networks:
+  local:
