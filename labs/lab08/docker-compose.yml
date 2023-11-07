@@ -59,8 +59,8 @@ services:
 
   dialogappcas:
     build:
-      context: dialog
-    container_name: socialnet_dialog
+      context: dialogcas
+    container_name: socialnet_dialogcas
     depends_on:
       pgsql:
         condition: service_healthy
